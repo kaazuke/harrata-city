@@ -4,7 +4,7 @@
 
 ---
 
-![Bannière Harrata City](https://via.placeholder.com/1200x400/06070d/5eead4?text=HARRATA+CITY)
+![Harrata City — hub communautaire FiveM (aperçu du site)](https://fivem-rp-community.vercel.app/brand/forum-cover-fivem.png)
 
 # 🌃 Harrata City — La ville ne dort jamais. Votre histoire, si.
 
@@ -83,10 +83,9 @@ Communauté portée par une équipe bénévole passionnée :
 
 ## 📸 Screenshots
 
-> *Les screenshots et vidéos seront ajoutés dès la prochaine vague de joueurs beta.*
+![Page d'accueil — hero, navigation, statut serveur](https://fivem-rp-community.vercel.app/brand/forum-cover-fivem.png)
 
-![Screenshot 1](https://via.placeholder.com/800x450/0a0c14/5eead4?text=Screenshot+1)
-![Screenshot 2](https://via.placeholder.com/800x450/0a0c14/818cf8?text=Screenshot+2)
+> *Tu peux ajouter d’autres captures (in-game, forum, admin) en dessous après déploiement de l’image sur ton dépôt.*
 
 ## ❓ FAQ rapide
 
@@ -115,6 +114,8 @@ R : Pic de 18h à 2h en semaine, journée et soirée le weekend.
 ---
 
 # 🌃 Harrata City — A city that never sleeps. Your story might.
+
+![Harrata City — FiveM community hub (site preview)](https://fivem-rp-community.vercel.app/brand/forum-cover-fivem.png)
 
 > **French-speaking FiveM Roleplay server · Narrative · Whitelist · Free beta**
 
@@ -162,7 +163,7 @@ The server is currently **in beta**: **no paid VIP, no advantages from money, ze
 2. **RP comes first** — no wild HRP, no MetaGaming / PowerGaming
 3. **No mediaRP** (leaks, out-of-character threats, doxxing)
 4. **Staff decisions are final** — disputes only via private ticket
-5. **Full rules**: https://fivem-rp-community.vercel.app/reglement
+5. **Full rules**: https://fivem-rp-community.vercel.app/en/reglement
 
 ## 🗓️ Public roadmap
 
