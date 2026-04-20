@@ -1,0 +1,38 @@
+{
+  "name": "fivem-rp-community",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "dev": "next dev --turbopack --hostname 0.0.0.0 --port 3000",
+    "dev:webpack": "next dev --hostname 0.0.0.0 --port 3000",
+    "dev:clean": "npm run clean && npm run dev",
+    "dev:warm": "node scripts/warmup.mjs",
+    "build": "next build",
+    "build:clean": "npm run clean && npm run build",
+    "postbuild": "node scripts/verify-next-server.mjs",
+    "prestart": "node scripts/verify-next-server.mjs",
+    "start": "next start --hostname 0.0.0.0 --port 3000",
+    "start:clean": "npm run build:clean && next start --hostname 0.0.0.0 --port 3000",
+    "lint": "eslint",
+    "fresh": "npm run clean && npm run build && npm run dev",
+    "port:3000": "node scripts/who-uses-port.mjs 3000"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "next": "15.5.15",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.15",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

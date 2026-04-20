@@ -1,0 +1,9 @@
+{
+  "id": "theme-presets",
+  "name": "Theme switcher",
+  "version": "1.0.0",
+  "author": "DKN Community",
+  "category": "ui",
+  "description": "Sélecteur de thèmes dans la barre du site avec 5 presets : Midnight, Neon, Sakura, Sunset, Mint.",
+  "settings": {}
+}

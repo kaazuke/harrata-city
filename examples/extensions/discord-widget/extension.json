@@ -1,0 +1,16 @@
+{
+  "id": "discord-widget",
+  "name": "Discord widget",
+  "version": "1.0.0",
+  "author": "DKN Community",
+  "category": "communaute",
+  "description": "Encart 'Rejoindre le Discord' avec aperçu des membres en ligne (widget officiel Discord).",
+  "settings": {
+    "serverId": "",
+    "refreshSeconds": 60,
+    "position": "bottom-left",
+    "inviteUrl": "",
+    "accentColor": "#5865F2",
+    "collapsedByDefault": true
+  }
+}

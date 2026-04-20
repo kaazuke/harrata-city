@@ -1,0 +1,15 @@
+{
+  "id": "welcome-banner",
+  "name": "Bannière d'accueil",
+  "version": "1.0.0",
+  "author": "DKN Community",
+  "category": "ui",
+  "description": "Affiche une bannière personnalisable en haut du site pour accueillir vos visiteurs (message + couleur + bouton CTA optionnel).",
+  "settings": {
+    "message": "Bienvenue sur notre serveur RP — pensez à lire le règlement !",
+    "color": "#7aa2f7",
+    "ctaLabel": "Rejoindre Discord",
+    "ctaUrl": "",
+    "dismissible": true
+  }
+}

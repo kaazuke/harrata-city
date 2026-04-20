@@ -1,0 +1,1516 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Input, Textarea } from "@/components/ui/Input";
+import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import type {
+  Article,
+  BoutiqueProduct,
+  FaqItem,
+  FeatureTile,
+  GalleryItem,
+  LoreSection,
+  PresentationMedia,
+  RuleCategory,
+  StaffMember,
+  StatCard,
+} from "@/config/types";
+
+type Section =
+  | "presentation"
+  | "stats"
+  | "staff"
+  | "rules"
+  | "articles"
+  | "boutique"
+  | "gallery"
+  | "faq"
+  | "contact";
+
+const SECTIONS: { id: Section; label: string; hint: string }[] = [
+  { id: "presentation", label: "Présentation", hint: "Tuiles, lore, points forts, économie" },
+  { id: "stats", label: "Statistiques", hint: "Cartes & barres" },
+  { id: "staff", label: "Équipe", hint: "Membres de l’équipe (page Équipe)" },
+  { id: "rules", label: "Règlement", hint: "Catégories de règles" },
+  { id: "articles", label: "Actualités", hint: "Articles / patch notes" },
+  { id: "boutique", label: "Boutique", hint: "Produits Tebex" },
+  { id: "gallery", label: "Galerie", hint: "Screenshots, vidéos, clips" },
+  { id: "faq", label: "FAQ", hint: "Questions fréquentes" },
+  { id: "contact", label: "Contact", hint: "Email & salon Discord support" },
+];
+
+export function AdminContentTab() {
+  const [section, setSection] = useState<Section>("presentation");
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader
+          title="Contenus du site"
+          subtitle="Édite ici tout ce qui apparaît sur les pages publiques (Présentation, Équipe, Règlement, Actualités, Boutique, Galerie, FAQ, Stats, Contact)."
+        />
+        <CardBody>
+          <div className="flex flex-wrap gap-2">
+            {SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSection(s.id)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                  section === s.id
+                    ? "border-[color-mix(in_oklab,var(--rp-primary)_55%,var(--rp-border))] bg-white/10 text-[var(--rp-fg)]"
+                    : "border-[var(--rp-border)] text-[var(--rp-muted)] hover:bg-white/5"
+                }`}
+                title={s.hint}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
+
+      {section === "presentation" ? <PresentationEditor /> : null}
+      {section === "stats" ? <StatsEditor /> : null}
+      {section === "staff" ? <StaffEditor /> : null}
+      {section === "rules" ? <RulesEditor /> : null}
+      {section === "articles" ? <ArticlesEditor /> : null}
+      {section === "boutique" ? <BoutiqueEditor /> : null}
+      {section === "gallery" ? <GalleryEditor /> : null}
+      {section === "faq" ? <FaqEditor /> : null}
+      {section === "contact" ? <ContactEditor /> : null}
+    </div>
+  );
+}
+
+/* ─────────────── Helpers UI ─────────────── */
+
+function Row({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/15 p-3">
+      {children}
+    </div>
+  );
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label className="text-xs font-semibold text-[var(--rp-muted)]">{children}</label>;
+}
+
+function newId(prefix: string) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function moveItem<T>(arr: T[], idx: number, dir: -1 | 1): T[] {
+  const target = idx + dir;
+  if (target < 0 || target >= arr.length) return arr;
+  const next = arr.slice();
+  const [it] = next.splice(idx, 1);
+  next.splice(target, 0, it);
+  return next;
+}
+
+function ItemControls({
+  index,
+  total,
+  onUp,
+  onDown,
+  onDelete,
+}: {
+  index: number;
+  total: number;
+  onUp: () => void;
+  onDown: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      <button
+        type="button"
+        onClick={onUp}
+        disabled={index === 0}
+        className="rounded border border-[var(--rp-border)] px-2 py-1 text-xs leading-none disabled:opacity-30"
+        aria-label="Monter"
+        title="Monter"
+      >
+        ↑
+      </button>
+      <button
+        type="button"
+        onClick={onDown}
+        disabled={index === total - 1}
+        className="rounded border border-[var(--rp-border)] px-2 py-1 text-xs leading-none disabled:opacity-30"
+        aria-label="Descendre"
+        title="Descendre"
+      >
+        ↓
+      </button>
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={onDelete}
+        className="px-2 py-1 text-[var(--rp-danger)]"
+      >
+        Suppr.
+      </Button>
+    </div>
+  );
+}
+
+/* ─────────────── Présentation ─────────────── */
+
+const FEATURE_ICONS: FeatureTile["icon"][] = [
+  "shield",
+  "users",
+  "economy",
+  "map",
+  "discord",
+  "spark",
+];
+
+function PresentationEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const features = config.features ?? [];
+  const lore = config.lore ?? [];
+  const strengths = config.strengths ?? [];
+
+  function setFeatures(next: FeatureTile[]) {
+    setConfig({ ...config, features: next });
+  }
+  function setLore(next: LoreSection[]) {
+    setConfig({ ...config, lore: next });
+  }
+  function setStrengths(next: string[]) {
+    setConfig({ ...config, strengths: next });
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader
+          title="Tuiles « Pourquoi nous rejoindre »"
+          subtitle="Affichées sur l’accueil et la page Présentation."
+          actions={
+            <Button
+              onClick={() =>
+                setFeatures([
+                  ...features,
+                  {
+                    id: newId("f"),
+                    title: "Nouvelle tuile",
+                    description: "Décris ici une force du serveur.",
+                    icon: "spark",
+                  },
+                ])
+              }
+            >
+              + Ajouter
+            </Button>
+          }
+        />
+        <CardBody className="space-y-2">
+          {features.length === 0 ? (
+            <p className="text-sm text-[var(--rp-muted)]">Aucune tuile.</p>
+          ) : (
+            features.map((f, i) => (
+              <Row key={f.id}>
+                <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                  <div className="grid flex-1 gap-2 md:grid-cols-3">
+                    <Input
+                      value={f.title}
+                      onChange={(e) =>
+                        setFeatures(
+                          features.map((x) => (x.id === f.id ? { ...x, title: e.target.value } : x)),
+                        )
+                      }
+                      placeholder="Titre"
+                    />
+                    <select
+                      className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
+                      value={f.icon}
+                      onChange={(e) =>
+                        setFeatures(
+                          features.map((x) =>
+                            x.id === f.id
+                              ? { ...x, icon: e.target.value as FeatureTile["icon"] }
+                              : x,
+                          ),
+                        )
+                      }
+                    >
+                      {FEATURE_ICONS.map((ic) => (
+                        <option key={ic} value={ic}>
+                          {ic}
+                        </option>
+                      ))}
+                    </select>
+                    <Textarea
+                      className="md:col-span-3 min-h-[60px]"
+                      value={f.description}
+                      onChange={(e) =>
+                        setFeatures(
+                          features.map((x) =>
+                            x.id === f.id ? { ...x, description: e.target.value } : x,
+                          ),
+                        )
+                      }
+                      placeholder="Description"
+                    />
+                  </div>
+                  <ItemControls
+                    index={i}
+                    total={features.length}
+                    onUp={() => setFeatures(moveItem(features, i, -1))}
+                    onDown={() => setFeatures(moveItem(features, i, 1))}
+                    onDelete={() => setFeatures(features.filter((x) => x.id !== f.id))}
+                  />
+                </div>
+              </Row>
+            ))
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Lore / Histoire"
+          subtitle="Sections narratives affichées sur la page Présentation."
+          actions={
+            <Button
+              onClick={() =>
+                setLore([
+                  ...lore,
+                  { title: "Nouveau chapitre", body: "Décris ici un pan de l’univers." },
+                ])
+              }
+            >
+              + Ajouter
+            </Button>
+          }
+        />
+        <CardBody className="space-y-2">
+          {lore.length === 0 ? (
+            <p className="text-sm text-[var(--rp-muted)]">Aucun chapitre de lore.</p>
+          ) : (
+            lore.map((l, i) => (
+              <Row key={`lore-${i}`}>
+                <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <Input
+                      value={l.title}
+                      onChange={(e) =>
+                        setLore(lore.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))
+                      }
+                      placeholder="Titre du chapitre"
+                    />
+                    <Textarea
+                      value={l.body}
+                      onChange={(e) =>
+                        setLore(lore.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))
+                      }
+                      placeholder="Texte du chapitre"
+                    />
+                  </div>
+                  <ItemControls
+                    index={i}
+                    total={lore.length}
+                    onUp={() => setLore(moveItem(lore, i, -1))}
+                    onDown={() => setLore(moveItem(lore, i, 1))}
+                    onDelete={() => setLore(lore.filter((_, j) => j !== i))}
+                  />
+                </div>
+              </Row>
+            ))
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Points forts"
+          subtitle="Une ligne par point fort (puces sur la page Présentation)."
+          actions={
+            <Button onClick={() => setStrengths([...strengths, "Nouveau point fort"])}>
+              + Ajouter
+            </Button>
+          }
+        />
+        <CardBody className="space-y-2">
+          {strengths.length === 0 ? (
+            <p className="text-sm text-[var(--rp-muted)]">Aucun point fort.</p>
+          ) : (
+            strengths.map((s, i) => (
+              <div key={`str-${i}`} className="flex items-center gap-2">
+                <Input
+                  className="flex-1"
+                  value={s}
+                  onChange={(e) =>
+                    setStrengths(strengths.map((x, j) => (j === i ? e.target.value : x)))
+                  }
+                />
+                <ItemControls
+                  index={i}
+                  total={strengths.length}
+                  onUp={() => setStrengths(moveItem(strengths, i, -1))}
+                  onDown={() => setStrengths(moveItem(strengths, i, 1))}
+                  onDelete={() => setStrengths(strengths.filter((_, j) => j !== i))}
+                />
+              </div>
+            ))
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader title="Texte économie" subtitle="Court paragraphe sur l’économie du serveur." />
+        <CardBody>
+          <Textarea
+            value={config.economyBlurb ?? ""}
+            onChange={(e) => setConfig({ ...config, economyBlurb: e.target.value })}
+            placeholder="Décris l’économie en quelques phrases."
+          />
+        </CardBody>
+      </Card>
+
+      <PresentationMediaEditor />
+    </div>
+  );
+}
+
+/* ─────────────── Médias de la page Présentation ─────────────── */
+
+const MEDIA_TYPE_HELP: Record<PresentationMedia["type"], string> = {
+  image: "URL d’une image (jpg, png, webp, gif).",
+  video: "URL d’un fichier vidéo (mp4, webm). Lecteur natif `<video controls>`.",
+  youtube: "URL YouTube complète OU identifiant 11 caractères (ex. dQw4w9WgXcQ).",
+};
+
+function PresentationMediaEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const media = config.presentationMedia ?? [];
+
+  function setMedia(next: PresentationMedia[]) {
+    setConfig({ ...config, presentationMedia: next });
+  }
+
+  function add(type: PresentationMedia["type"]) {
+    const sample: Record<PresentationMedia["type"], string> = {
+      image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1600&q=80",
+      video: "",
+      youtube: "",
+    };
+    setMedia([
+      ...media,
+      {
+        id: newId("pm"),
+        type,
+        src: sample[type],
+        title: type === "youtube" ? "Nouvelle vidéo" : type === "video" ? "Nouvelle vidéo" : "Nouveau média",
+        caption: "",
+      },
+    ]);
+  }
+
+  function patch(id: string, p: Partial<PresentationMedia>) {
+    setMedia(media.map((m) => (m.id === id ? { ...m, ...p } : m)));
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Médias — page Présentation"
+        subtitle="Affichés dans la section « Médias » de la page Présentation. Mélangez images, vidéos locales et vidéos YouTube."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => add("image")}>+ Image</Button>
+            <Button variant="outline" onClick={() => add("video")}>
+              + Vidéo
+            </Button>
+            <Button variant="outline" onClick={() => add("youtube")}>
+              + YouTube
+            </Button>
+          </div>
+        }
+      />
+      <CardBody className="space-y-3">
+        {media.length === 0 ? (
+          <p className="text-sm text-[var(--rp-muted)]">
+            Aucun média. Utilise les boutons ci-dessus pour en ajouter.
+          </p>
+        ) : (
+          media.map((m, i) => (
+            <Row key={m.id}>
+              <div className="flex flex-col gap-3 md:flex-row md:items-start">
+                <MediaPreview item={m} />
+                <div className="grid flex-1 gap-2 md:grid-cols-12">
+                  <div className="md:col-span-3">
+                    <FieldLabel>Type</FieldLabel>
+                    <select
+                      className="mt-1 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
+                      value={m.type}
+                      onChange={(e) =>
+                        patch(m.id, { type: e.target.value as PresentationMedia["type"] })
+                      }
+                    >
+                      <option value="image">Image</option>
+                      <option value="video">Vidéo (fichier)</option>
+                      <option value="youtube">YouTube</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-9">
+                    <FieldLabel>Titre (optionnel)</FieldLabel>
+                    <Input
+                      className="mt-1"
+                      value={m.title ?? ""}
+                      onChange={(e) => patch(m.id, { title: e.target.value })}
+                      placeholder="Titre court"
+                    />
+                  </div>
+                  <div className="md:col-span-12">
+                    <FieldLabel>
+                      Source — <span className="text-[var(--rp-muted)]">{MEDIA_TYPE_HELP[m.type]}</span>
+                    </FieldLabel>
+                    <Input
+                      className="mt-1"
+                      value={m.src}
+                      onChange={(e) => patch(m.id, { src: e.target.value })}
+                      placeholder={
+                        m.type === "youtube"
+                          ? "https://www.youtube.com/watch?v=… ou dQw4w9WgXcQ"
+                          : m.type === "video"
+                            ? "https://exemple.com/clip.mp4"
+                            : "https://exemple.com/image.jpg"
+                      }
+                    />
+                  </div>
+                  {m.type === "video" ? (
+                    <div className="md:col-span-12">
+                      <FieldLabel>Image de prévisualisation (poster, optionnel)</FieldLabel>
+                      <Input
+                        className="mt-1"
+                        value={m.poster ?? ""}
+                        onChange={(e) =>
+                          patch(m.id, { poster: e.target.value || undefined })
+                        }
+                        placeholder="URL d’une image affichée avant lecture"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="md:col-span-12">
+                    <FieldLabel>Légende (optionnelle)</FieldLabel>
+                    <Textarea
+                      className="mt-1 min-h-[50px]"
+                      value={m.caption ?? ""}
+                      onChange={(e) => patch(m.id, { caption: e.target.value })}
+                      placeholder="Texte court sous le média"
+                    />
+                  </div>
+                </div>
+                <ItemControls
+                  index={i}
+                  total={media.length}
+                  onUp={() => setMedia(moveItem(media, i, -1))}
+                  onDown={() => setMedia(moveItem(media, i, 1))}
+                  onDelete={() => setMedia(media.filter((x) => x.id !== m.id))}
+                />
+              </div>
+            </Row>
+          ))
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+function MediaPreview({ item }: { item: PresentationMedia }) {
+  const wrapper =
+    "relative h-24 w-40 shrink-0 overflow-hidden rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/40";
+  if (item.type === "youtube") {
+    const id = ytId(item.src);
+    if (!id) {
+      return (
+        <div className={wrapper}>
+          <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--rp-muted)]">
+            ID invalide
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className={wrapper}>
+        <img
+          // eslint-disable-next-line @next/next/no-img-element
+          src={`https://img.youtube.com/vi/${id}/mqdefault.jpg`}
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
+  }
+  if (item.type === "video") {
+    return (
+      <div className={wrapper}>
+        {item.poster ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.poster} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--rp-muted)]">
+            Vidéo
+          </div>
+        )}
+      </div>
+    );
+  }
+  // image
+  return (
+    <div className={wrapper}>
+      {item.src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={item.src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--rp-muted)]">
+          Image
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ytId(input: string): string | null {
+  const t = input.trim();
+  if (!t) return null;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(t)) return t;
+  try {
+    const u = new URL(t);
+    if (u.hostname.includes("youtu.be")) return u.pathname.replace(/^\/+/, "") || null;
+    if (u.hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+      const m = u.pathname.match(/\/(embed|shorts)\/([a-zA-Z0-9_-]{11})/);
+      if (m) return m[2];
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/* ─────────────── Statistiques ─────────────── */
+
+function StatsEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const cards = config.statCards ?? [];
+  const series = config.statSeries ?? [];
+
+  function setCards(next: StatCard[]) {
+    setConfig({ ...config, statCards: next });
+  }
+  function setSeries(next: { label: string; value: number }[]) {
+    setConfig({ ...config, statSeries: next });
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader
+          title="Cartes statistiques"
+          subtitle="Affichées sur l’accueil (aperçu) et la page Statistiques."
+          actions={
+            <Button
+              onClick={() =>
+                setCards([
+                  ...cards,
+                  { id: newId("s"), label: "Nouvelle stat", value: "0", hint: "" },
+                ])
+              }
+            >
+              + Ajouter
+            </Button>
+          }
+        />
+        <CardBody className="space-y-2">
+          {cards.length === 0 ? (
+            <p className="text-sm text-[var(--rp-muted)]">Aucune carte.</p>
+          ) : (
+            cards.map((c, i) => (
+              <Row key={c.id}>
+                <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                  <div className="grid flex-1 gap-2 md:grid-cols-4">
+                    <Input
+                      value={c.label}
+                      onChange={(e) =>
+                        setCards(cards.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)))
+                      }
+                      placeholder="Label"
+                    />
+                    <Input
+                      value={c.value}
+                      onChange={(e) =>
+                        setCards(cards.map((x) => (x.id === c.id ? { ...x, value: e.target.value } : x)))
+                      }
+                      placeholder="Valeur (ex. 256, 99%)"
+                    />
+                    <Input
+                      value={c.trend ?? ""}
+                      onChange={(e) =>
+                        setCards(
+                          cards.map((x) =>
+                            x.id === c.id ? { ...x, trend: e.target.value || undefined } : x,
+                          ),
+                        )
+                      }
+                      placeholder="Tendance (ex. +12%)"
+                    />
+                    <Input
+                      value={c.hint ?? ""}
+                      onChange={(e) =>
+                        setCards(
+                          cards.map((x) =>
+                            x.id === c.id ? { ...x, hint: e.target.value || undefined } : x,
+                          ),
+                        )
+                      }
+                      placeholder="Info (optionnel)"
+                    />
+                  </div>
+                  <ItemControls
+                    index={i}
+                    total={cards.length}
+                    onUp={() => setCards(moveItem(cards, i, -1))}
+                    onDown={() => setCards(moveItem(cards, i, 1))}
+                    onDelete={() => setCards(cards.filter((x) => x.id !== c.id))}
+                  />
+                </div>
+              </Row>
+            ))
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Série statistique (barres)"
+          subtitle="Données utilisées pour le graphique sur la page Statistiques."
+          actions={
+            <Button onClick={() => setSeries([...series, { label: "Nouveau", value: 0 }])}>
+              + Ajouter
+            </Button>
+          }
+        />
+        <CardBody className="space-y-2">
+          {series.length === 0 ? (
+            <p className="text-sm text-[var(--rp-muted)]">Aucune valeur.</p>
+          ) : (
+            series.map((p, i) => (
+              <div key={`series-${i}`} className="flex items-center gap-2">
+                <Input
+                  className="flex-1"
+                  value={p.label}
+                  onChange={(e) =>
+                    setSeries(series.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))
+                  }
+                  placeholder="Label (ex. Lundi)"
+                />
+                <Input
+                  className="w-32"
+                  type="number"
+                  value={p.value}
+                  onChange={(e) =>
+                    setSeries(
+                      series.map((x, j) => (j === i ? { ...x, value: Number(e.target.value) } : x)),
+                    )
+                  }
+                  placeholder="Valeur"
+                />
+                <ItemControls
+                  index={i}
+                  total={series.length}
+                  onUp={() => setSeries(moveItem(series, i, -1))}
+                  onDown={() => setSeries(moveItem(series, i, 1))}
+                  onDelete={() => setSeries(series.filter((_, j) => j !== i))}
+                />
+              </div>
+            ))
+          )}
+        </CardBody>
+      </Card>
+    </div>
+  );
+}
+
+/* ─────────────── Équipe ─────────────── */
+
+const STAFF_TIERS: StaffMember["tier"][] = ["founder", "admin", "mod", "dev", "support"];
+
+function StaffEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const staff = config.staff ?? [];
+
+  function setStaff(next: StaffMember[]) {
+    setConfig({ ...config, staff: next });
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Membres de l’équipe"
+        subtitle="Affichés sur la page Équipe (en plus des comptes admin/modérateur si l’option est activée dans Modules)."
+        actions={
+          <Button
+            onClick={() =>
+              setStaff([
+                ...staff,
+                {
+                  id: newId("st"),
+                  name: "Nouveau membre",
+                  role: "Modérateur",
+                  tier: "mod",
+                  bio: "Présente-toi en quelques mots.",
+                  avatarUrl: "",
+                },
+              ])
+            }
+          >
+            + Ajouter
+          </Button>
+        }
+      />
+      <CardBody className="space-y-2">
+        {staff.length === 0 ? (
+          <p className="text-sm text-[var(--rp-muted)]">Aucun membre dans l’équipe.</p>
+        ) : (
+          staff.map((m, i) => (
+            <Row key={m.id}>
+              <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                <div className="grid flex-1 gap-2 md:grid-cols-4">
+                  <Input
+                    value={m.name}
+                    onChange={(e) =>
+                      setStaff(staff.map((x) => (x.id === m.id ? { ...x, name: e.target.value } : x)))
+                    }
+                    placeholder="Nom"
+                  />
+                  <Input
+                    value={m.role}
+                    onChange={(e) =>
+                      setStaff(staff.map((x) => (x.id === m.id ? { ...x, role: e.target.value } : x)))
+                    }
+                    placeholder="Rôle (libellé)"
+                  />
+                  <select
+                    className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
+                    value={m.tier}
+                    onChange={(e) =>
+                      setStaff(
+                        staff.map((x) =>
+                          x.id === m.id ? { ...x, tier: e.target.value as StaffMember["tier"] } : x,
+                        ),
+                      )
+                    }
+                  >
+                    {STAFF_TIERS.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    value={m.avatarUrl ?? ""}
+                    onChange={(e) =>
+                      setStaff(
+                        staff.map((x) =>
+                          x.id === m.id ? { ...x, avatarUrl: e.target.value || undefined } : x,
+                        ),
+                      )
+                    }
+                    placeholder="URL avatar (optionnel)"
+                  />
+                  <Textarea
+                    className="md:col-span-4 min-h-[60px]"
+                    value={m.bio}
+                    onChange={(e) =>
+                      setStaff(staff.map((x) => (x.id === m.id ? { ...x, bio: e.target.value } : x)))
+                    }
+                    placeholder="Bio courte"
+                  />
+                </div>
+                <ItemControls
+                  index={i}
+                  total={staff.length}
+                  onUp={() => setStaff(moveItem(staff, i, -1))}
+                  onDown={() => setStaff(moveItem(staff, i, 1))}
+                  onDelete={() => setStaff(staff.filter((x) => x.id !== m.id))}
+                />
+              </div>
+            </Row>
+          ))
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+/* ─────────────── Règlement ─────────────── */
+
+function RulesEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const rules = config.rules ?? [];
+
+  function setRules(next: RuleCategory[]) {
+    setConfig({ ...config, rules: next });
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Règlement"
+        subtitle="Catégories et règles affichées sur la page Règlement."
+        actions={
+          <Button
+            onClick={() =>
+              setRules([
+                ...rules,
+                { id: newId("r"), title: "Nouvelle catégorie", items: ["Première règle"] },
+              ])
+            }
+          >
+            + Catégorie
+          </Button>
+        }
+      />
+      <CardBody className="space-y-3">
+        {rules.length === 0 ? (
+          <p className="text-sm text-[var(--rp-muted)]">Aucune catégorie.</p>
+        ) : (
+          rules.map((cat, i) => (
+            <Row key={cat.id}>
+              <div className="flex items-start gap-2">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="flex-1"
+                      value={cat.title}
+                      onChange={(e) =>
+                        setRules(
+                          rules.map((x) => (x.id === cat.id ? { ...x, title: e.target.value } : x)),
+                        )
+                      }
+                      placeholder="Titre de la catégorie"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setRules(
+                          rules.map((x) =>
+                            x.id === cat.id ? { ...x, items: [...x.items, "Nouvelle règle"] } : x,
+                          ),
+                        )
+                      }
+                    >
+                      + Règle
+                    </Button>
+                  </div>
+                  {cat.items.map((it, j) => (
+                    <div key={`${cat.id}-${j}`} className="flex items-center gap-2">
+                      <span className="w-6 text-right text-xs text-[var(--rp-muted)]">{j + 1}.</span>
+                      <Input
+                        className="flex-1"
+                        value={it}
+                        onChange={(e) =>
+                          setRules(
+                            rules.map((x) =>
+                              x.id === cat.id
+                                ? {
+                                    ...x,
+                                    items: x.items.map((y, k) => (k === j ? e.target.value : y)),
+                                  }
+                                : x,
+                            ),
+                          )
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="rounded border border-[var(--rp-border)] px-2 py-1 text-xs text-[var(--rp-danger)]"
+                        onClick={() =>
+                          setRules(
+                            rules.map((x) =>
+                              x.id === cat.id
+                                ? { ...x, items: x.items.filter((_, k) => k !== j) }
+                                : x,
+                            ),
+                          )
+                        }
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <ItemControls
+                  index={i}
+                  total={rules.length}
+                  onUp={() => setRules(moveItem(rules, i, -1))}
+                  onDown={() => setRules(moveItem(rules, i, 1))}
+                  onDelete={() => setRules(rules.filter((x) => x.id !== cat.id))}
+                />
+              </div>
+            </Row>
+          ))
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+/* ─────────────── Articles / Actualités ─────────────── */
+
+const ARTICLE_CATEGORIES: Article["category"][] = ["patch", "news", "event", "community"];
+
+function ArticlesEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const articles = config.articles ?? [];
+
+  function setArticles(next: Article[]) {
+    setConfig({ ...config, articles: next });
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Actualités / Articles"
+        subtitle="Affichés sur la page Actualités, l’accueil et les pages détail /actualites/[slug]."
+        actions={
+          <Button
+            onClick={() =>
+              setArticles([
+                {
+                  slug: `nouveau-${Date.now().toString(36)}`,
+                  title: "Nouvel article",
+                  excerpt: "Court résumé de l’article.",
+                  date: new Date().toISOString().slice(0, 10),
+                  category: "news",
+                  bodyMarkdown: "# Titre\n\nÉcris ici le contenu en markdown.",
+                },
+                ...articles,
+              ])
+            }
+          >
+            + Article
+          </Button>
+        }
+      />
+      <CardBody className="space-y-3">
+        {articles.length === 0 ? (
+          <p className="text-sm text-[var(--rp-muted)]">Aucun article.</p>
+        ) : (
+          articles.map((a, i) => (
+            <Row key={a.slug}>
+              <div className="flex items-start gap-2">
+                <div className="grid flex-1 gap-2 md:grid-cols-12">
+                  <Input
+                    className="md:col-span-5"
+                    value={a.title}
+                    onChange={(e) =>
+                      setArticles(
+                        articles.map((x) => (x.slug === a.slug ? { ...x, title: e.target.value } : x)),
+                      )
+                    }
+                    placeholder="Titre"
+                  />
+                  <Input
+                    className="md:col-span-3"
+                    value={a.slug}
+                    onChange={(e) => {
+                      const slug = e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9-]+/g, "-")
+                        .replace(/^-+|-+$/g, "");
+                      setArticles(
+                        articles.map((x, j) => (j === i ? { ...x, slug: slug || a.slug } : x)),
+                      );
+                    }}
+                    placeholder="slug-url"
+                  />
+                  <Input
+                    className="md:col-span-2"
+                    type="date"
+                    value={a.date}
+                    onChange={(e) =>
+                      setArticles(
+                        articles.map((x) => (x.slug === a.slug ? { ...x, date: e.target.value } : x)),
+                      )
+                    }
+                  />
+                  <select
+                    className="md:col-span-2 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
+                    value={a.category}
+                    onChange={(e) =>
+                      setArticles(
+                        articles.map((x) =>
+                          x.slug === a.slug
+                            ? { ...x, category: e.target.value as Article["category"] }
+                            : x,
+                        ),
+                      )
+                    }
+                  >
+                    {ARTICLE_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <Textarea
+                    className="md:col-span-12 min-h-[60px]"
+                    value={a.excerpt}
+                    onChange={(e) =>
+                      setArticles(
+                        articles.map((x) =>
+                          x.slug === a.slug ? { ...x, excerpt: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    placeholder="Résumé"
+                  />
+                  <Textarea
+                    className="md:col-span-12 min-h-[140px] font-mono text-xs"
+                    value={a.bodyMarkdown}
+                    onChange={(e) =>
+                      setArticles(
+                        articles.map((x) =>
+                          x.slug === a.slug ? { ...x, bodyMarkdown: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    placeholder="Contenu (markdown)"
+                  />
+                  <label className="md:col-span-12 inline-flex items-center gap-2 text-xs text-[var(--rp-muted)]">
+                    <input
+                      type="checkbox"
+                      checked={!!a.featured}
+                      onChange={(e) =>
+                        setArticles(
+                          articles.map((x) =>
+                            x.slug === a.slug ? { ...x, featured: e.target.checked } : x,
+                          ),
+                        )
+                      }
+                    />
+                    Mettre en avant (featured)
+                  </label>
+                </div>
+                <ItemControls
+                  index={i}
+                  total={articles.length}
+                  onUp={() => setArticles(moveItem(articles, i, -1))}
+                  onDown={() => setArticles(moveItem(articles, i, 1))}
+                  onDelete={() => setArticles(articles.filter((x) => x.slug !== a.slug))}
+                />
+              </div>
+            </Row>
+          ))
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+/* ─────────────── Boutique ─────────────── */
+
+const BOUTIQUE_BADGES: NonNullable<BoutiqueProduct["badge"]>[] = [
+  "vip",
+  "new",
+  "promo",
+  "limited",
+];
+
+function BoutiqueEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const products = config.boutiqueProducts ?? [];
+
+  function setProducts(next: BoutiqueProduct[]) {
+    setConfig({ ...config, boutiqueProducts: next });
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Produits boutique"
+        subtitle="Affichés sur la page Boutique. Si une URL Tebex est fournie, elle est utilisée directement."
+        actions={
+          <Button
+            onClick={() =>
+              setProducts([
+                ...products,
+                {
+                  id: newId("p"),
+                  title: "Nouveau pack",
+                  description: "Décris le pack en quelques lignes.",
+                  priceLabel: "9,99€",
+                  perks: ["Avantage 1", "Avantage 2"],
+                },
+              ])
+            }
+          >
+            + Produit
+          </Button>
+        }
+      />
+      <CardBody className="space-y-3">
+        {products.length === 0 ? (
+          <p className="text-sm text-[var(--rp-muted)]">Aucun produit.</p>
+        ) : (
+          products.map((p, i) => (
+            <Row key={p.id}>
+              <div className="flex items-start gap-2">
+                <div className="grid flex-1 gap-2 md:grid-cols-12">
+                  <Input
+                    className="md:col-span-5"
+                    value={p.title}
+                    onChange={(e) =>
+                      setProducts(
+                        products.map((x) => (x.id === p.id ? { ...x, title: e.target.value } : x)),
+                      )
+                    }
+                    placeholder="Titre"
+                  />
+                  <Input
+                    className="md:col-span-3"
+                    value={p.priceLabel}
+                    onChange={(e) =>
+                      setProducts(
+                        products.map((x) =>
+                          x.id === p.id ? { ...x, priceLabel: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    placeholder="Prix (libellé)"
+                  />
+                  <select
+                    className="md:col-span-2 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
+                    value={p.badge ?? ""}
+                    onChange={(e) =>
+                      setProducts(
+                        products.map((x) =>
+                          x.id === p.id
+                            ? {
+                                ...x,
+                                badge: e.target.value
+                                  ? (e.target.value as BoutiqueProduct["badge"])
+                                  : undefined,
+                              }
+                            : x,
+                        ),
+                      )
+                    }
+                  >
+                    <option value="">— Pas de badge —</option>
+                    {BOUTIQUE_BADGES.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    className="md:col-span-2"
+                    value={p.tebexPackageId ?? ""}
+                    onChange={(e) =>
+                      setProducts(
+                        products.map((x) =>
+                          x.id === p.id
+                            ? { ...x, tebexPackageId: e.target.value || undefined }
+                            : x,
+                        ),
+                      )
+                    }
+                    placeholder="Tebex pkgId"
+                  />
+                  <Input
+                    className="md:col-span-12"
+                    value={p.tebexUrl ?? ""}
+                    onChange={(e) =>
+                      setProducts(
+                        products.map((x) =>
+                          x.id === p.id ? { ...x, tebexUrl: e.target.value || undefined } : x,
+                        ),
+                      )
+                    }
+                    placeholder="URL Tebex (laisser vide pour générer depuis l’ID)"
+                  />
+                  <Textarea
+                    className="md:col-span-12 min-h-[60px]"
+                    value={p.description}
+                    onChange={(e) =>
+                      setProducts(
+                        products.map((x) =>
+                          x.id === p.id ? { ...x, description: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    placeholder="Description"
+                  />
+                  <div className="md:col-span-12">
+                    <FieldLabel>Avantages (un par ligne)</FieldLabel>
+                    <Textarea
+                      className="mt-1 min-h-[80px]"
+                      value={p.perks.join("\n")}
+                      onChange={(e) =>
+                        setProducts(
+                          products.map((x) =>
+                            x.id === p.id
+                              ? {
+                                  ...x,
+                                  perks: e.target.value
+                                    .split("\n")
+                                    .map((s) => s.trim())
+                                    .filter(Boolean),
+                                }
+                              : x,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+                <ItemControls
+                  index={i}
+                  total={products.length}
+                  onUp={() => setProducts(moveItem(products, i, -1))}
+                  onDown={() => setProducts(moveItem(products, i, 1))}
+                  onDelete={() => setProducts(products.filter((x) => x.id !== p.id))}
+                />
+              </div>
+            </Row>
+          ))
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+/* ─────────────── Galerie ─────────────── */
+
+const GALLERY_CATEGORIES: GalleryItem["category"][] = ["screenshot", "video", "clip"];
+
+function GalleryEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const gallery = config.gallery ?? [];
+
+  function setGallery(next: GalleryItem[]) {
+    setConfig({ ...config, gallery: next });
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Galerie"
+        subtitle="Screenshots, vidéos et clips affichés sur la page Galerie."
+        actions={
+          <Button
+            onClick={() =>
+              setGallery([
+                ...gallery,
+                {
+                  id: newId("g"),
+                  title: "Nouveau média",
+                  src: "https://...",
+                  category: "screenshot",
+                },
+              ])
+            }
+          >
+            + Média
+          </Button>
+        }
+      />
+      <CardBody className="space-y-2">
+        {gallery.length === 0 ? (
+          <p className="text-sm text-[var(--rp-muted)]">Aucun média dans la galerie.</p>
+        ) : (
+          gallery.map((g, i) => (
+            <Row key={g.id}>
+              <div className="flex flex-col gap-2 md:flex-row md:items-start">
+                <div className="grid flex-1 gap-2 md:grid-cols-12">
+                  <Input
+                    className="md:col-span-4"
+                    value={g.title}
+                    onChange={(e) =>
+                      setGallery(
+                        gallery.map((x) => (x.id === g.id ? { ...x, title: e.target.value } : x)),
+                      )
+                    }
+                    placeholder="Titre"
+                  />
+                  <select
+                    className="md:col-span-2 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
+                    value={g.category}
+                    onChange={(e) =>
+                      setGallery(
+                        gallery.map((x) =>
+                          x.id === g.id
+                            ? { ...x, category: e.target.value as GalleryItem["category"] }
+                            : x,
+                        ),
+                      )
+                    }
+                  >
+                    {GALLERY_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    className="md:col-span-6"
+                    value={g.src}
+                    onChange={(e) =>
+                      setGallery(
+                        gallery.map((x) => (x.id === g.id ? { ...x, src: e.target.value } : x)),
+                      )
+                    }
+                    placeholder="URL du média (image, vidéo, embed)"
+                  />
+                  <Input
+                    className="md:col-span-12"
+                    value={g.href ?? ""}
+                    onChange={(e) =>
+                      setGallery(
+                        gallery.map((x) =>
+                          x.id === g.id ? { ...x, href: e.target.value || undefined } : x,
+                        ),
+                      )
+                    }
+                    placeholder="URL externe (optionnelle, ex. lien YouTube)"
+                  />
+                </div>
+                <ItemControls
+                  index={i}
+                  total={gallery.length}
+                  onUp={() => setGallery(moveItem(gallery, i, -1))}
+                  onDown={() => setGallery(moveItem(gallery, i, 1))}
+                  onDelete={() => setGallery(gallery.filter((x) => x.id !== g.id))}
+                />
+              </div>
+            </Row>
+          ))
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+/* ─────────────── FAQ ─────────────── */
+
+function FaqEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const faq = config.faq ?? [];
+
+  function setFaq(next: FaqItem[]) {
+    setConfig({ ...config, faq: next });
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="FAQ"
+        subtitle="Questions fréquentes (utilisable sur les pages publiques)."
+        actions={
+          <Button
+            onClick={() =>
+              setFaq([
+                ...faq,
+                { question: "Nouvelle question ?", answer: "Réponse claire et concise." },
+              ])
+            }
+          >
+            + Question
+          </Button>
+        }
+      />
+      <CardBody className="space-y-2">
+        {faq.length === 0 ? (
+          <p className="text-sm text-[var(--rp-muted)]">Aucune question.</p>
+        ) : (
+          faq.map((q, i) => (
+            <Row key={`faq-${i}`}>
+              <div className="flex items-start gap-2">
+                <div className="flex-1 space-y-2">
+                  <Input
+                    value={q.question}
+                    onChange={(e) =>
+                      setFaq(faq.map((x, j) => (j === i ? { ...x, question: e.target.value } : x)))
+                    }
+                    placeholder="Question"
+                  />
+                  <Textarea
+                    value={q.answer}
+                    onChange={(e) =>
+                      setFaq(faq.map((x, j) => (j === i ? { ...x, answer: e.target.value } : x)))
+                    }
+                    placeholder="Réponse"
+                  />
+                </div>
+                <ItemControls
+                  index={i}
+                  total={faq.length}
+                  onUp={() => setFaq(moveItem(faq, i, -1))}
+                  onDown={() => setFaq(moveItem(faq, i, 1))}
+                  onDelete={() => setFaq(faq.filter((_, j) => j !== i))}
+                />
+              </div>
+            </Row>
+          ))
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+/* ─────────────── Contact ─────────────── */
+
+function ContactEditor() {
+  const { config, setConfig } = useSiteConfig();
+  const contact = config.contact ?? {};
+
+  return (
+    <Card>
+      <CardHeader
+        title="Contact"
+        subtitle="Email de support et salon Discord pour les tickets (affichés ou utilisés sur la page Contact)."
+      />
+      <CardBody className="grid gap-4 md:grid-cols-2">
+        <div>
+          <FieldLabel>Email de support</FieldLabel>
+          <Input
+            className="mt-2"
+            type="email"
+            value={contact.supportEmail ?? ""}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                contact: { ...contact, supportEmail: e.target.value || undefined },
+              })
+            }
+            placeholder="support@harrata-city.fr"
+          />
+        </div>
+        <div>
+          <FieldLabel>Salon Discord tickets</FieldLabel>
+          <Input
+            className="mt-2"
+            value={contact.ticketDiscordChannel ?? ""}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                contact: { ...contact, ticketDiscordChannel: e.target.value || undefined },
+              })
+            }
+            placeholder="#tickets-staff"
+          />
+        </div>
+      </CardBody>
+    </Card>
+  );
+}

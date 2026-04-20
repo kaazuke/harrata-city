@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+:root {
+  --rp-primary: #5eead4;
+  --rp-secondary: #818cf8;
+  --rp-accent: #f472b6;
+  --rp-bg: #06070d;
+  --rp-surface: #0a0c14;
+  --rp-muted: #94a3b8;
+  --rp-border: #1a2130;
+  --rp-fg: #e8edf7;
+  --rp-danger: #fb7185;
+  --rp-success: #4ade80;
+  --rp-hero-overlay: 0.72;
+  --rp-radius: 14px;
+  --rp-shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.35);
+  --rp-shadow-md: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --rp-shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 48px color-mix(in oklab, var(--rp-primary) 12%, transparent);
+  /* Fond : calques réutilisables (sérieux, peu saturés) */
+  --rp-bg-grid: color-mix(in oklab, var(--rp-border) 5.5%, transparent);
+  --rp-bg-vignette: color-mix(in oklab, black 55%, transparent);
+}
+
+@theme inline {
+  --font-sans: var(--font-body), ui-sans-serif, system-ui;
+  --font-heading: var(--font-heading), ui-sans-serif, system-ui;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --rp-shadow-sm: 0 2px 12px rgba(15, 23, 42, 0.08);
+  --rp-shadow-md: 0 12px 40px rgba(15, 23, 42, 0.1);
+  --rp-shadow-glow: 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --rp-bg-grid: color-mix(in oklab, var(--rp-border) 45%, transparent);
+  --rp-bg-vignette: color-mix(in oklab, var(--rp-fg) 4%, transparent);
+}
+
+html[data-theme="light"] {
+  --rp-bg: #f6f7fb;
+  --rp-surface: #ffffff;
+  --rp-muted: #475569;
+  --rp-border: #e2e8f0;
+  --rp-fg: #0b1220;
+}
+
+body {
+  background-color: var(--rp-bg);
+  /* Grille + léger dégradé vertical : structure type produit / dashboard */
+  background-image: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--rp-fg) 2.8%, transparent) 0%,
+      transparent min(32vh, 420px)
+    ),
+    linear-gradient(90deg, var(--rp-bg-grid) 1px, transparent 1px),
+    linear-gradient(0deg, var(--rp-bg-grid) 1px, transparent 1px);
+  background-size: auto, 52px 52px, 52px 52px;
+  background-position: 0 0, -1px -1px, -1px -1px;
+  color: var(--rp-fg);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+
+/* Halos larges + vignette : profondeur sans effet « arcade » */
+body::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+      ellipse 140% 55% at 50% -18%,
+      color-mix(in oklab, var(--rp-fg) 5%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      900px 520px at 0% 100%,
+      color-mix(in oklab, var(--rp-secondary) 7%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      820px 480px at 100% 100%,
+      color-mix(in oklab, var(--rp-primary) 6%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(120% 85% at 50% 108%, var(--rp-bg-vignette), transparent 52%);
+  opacity: 0.9;
+}
+
+html[data-theme="light"] body::after {
+  opacity: 0.72;
+}
+
+body > * {
+  position: relative;
+  z-index: 2;
+}
+
+h1,
+h2,
+h3,
+.font-heading {
+  font-family: var(--font-heading);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--rp-primary) 35%, transparent);
+  color: var(--rp-fg);
+}
+
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--rp-primary) 65%, transparent);
+  outline-offset: 2px;
+}
+
+html[data-noise="on"] body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  opacity: 0.028;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+html[data-layout="boxed"] .page-shell {
+  max-width: 72rem;
+}
+
+* {
+  scrollbar-color: color-mix(in oklab, var(--rp-border) 80%, transparent)
+    transparent;
+  scrollbar-width: thin;
+}
+
+/* Titres de section réutilisables (cohérence UI) */
+.rp-section-title {
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--rp-fg);
+}
+
+@media (min-width: 640px) {
+  .rp-section-title {
+    font-size: 1.5rem;
+  }
+}
+
+.rp-link-inline {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--rp-primary);
+  text-underline-offset: 4px;
+  transition: opacity 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.rp-link-inline:hover {
+  text-decoration: underline;
+  opacity: 0.92;
+}
+
+/* ─────────────── Animations annonces (slide + fondu) ─────────────── */
+@keyframes rp-announce-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.rp-announce-anim {
+  animation: rp-announce-in 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-announce-anim {
+    animation: none;
+  }
+}

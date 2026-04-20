@@ -1,0 +1,16 @@
+{
+  "id": "live-chat",
+  "name": "Chat live",
+  "version": "1.0.0",
+  "author": "DKN Community",
+  "category": "communaute",
+  "description": "Ajoute un panneau de chat flottant en bas du site, synchronisé en temps réel entre tous les onglets ouverts (BroadcastChannel).",
+  "settings": {
+    "title": "Chat live",
+    "accentColor": "#7aa2f7",
+    "position": "bottom-right",
+    "maxMessages": 60,
+    "slowmodeSeconds": 0,
+    "welcomeMessage": "Aucun message. Soyez le premier à écrire !"
+  }
+}

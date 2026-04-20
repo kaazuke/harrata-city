@@ -1,0 +1,9 @@
+{
+  "id": "analytics-pageviews",
+  "name": "Analytics maison",
+  "version": "1.0.0",
+  "author": "DKN Community",
+  "category": "autre",
+  "description": "Tracker invisible qui compte les vues de pages dans le navigateur (aucun envoi serveur), avec dashboard Top pages + graphique 14 jours dans l'admin.",
+  "settings": {}
+}

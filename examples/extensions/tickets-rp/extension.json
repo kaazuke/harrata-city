@@ -1,0 +1,14 @@
+{
+  "id": "tickets-rp",
+  "name": "Tickets RP",
+  "version": "1.0.0",
+  "author": "DKN Community",
+  "category": "serveur",
+  "description": "Système de tickets de signalement / question / bug : bouton flottant pour les joueurs, dashboard de modération dans l'admin.",
+  "settings": {
+    "buttonLabel": "Signaler",
+    "position": "top-left",
+    "accentColor": "#ff8c42",
+    "allowAnonymous": false
+  }
+}

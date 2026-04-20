@@ -1,0 +1,16 @@
+{
+  "id": "fivem-player-counter",
+  "name": "Compteur joueurs FiveM live",
+  "version": "1.0.0",
+  "author": "DKN Community",
+  "category": "serveur",
+  "description": "Widget flottant qui interroge directement /players.json de votre serveur FiveM (avec cache 5s) et affiche le nombre de joueurs en temps réel.",
+  "settings": {
+    "serverUrl": "",
+    "refreshSeconds": 30,
+    "label": "Joueurs FiveM",
+    "position": "top-right",
+    "accentColor": "#52e3a3",
+    "maxPlayers": 64
+  }
+}
