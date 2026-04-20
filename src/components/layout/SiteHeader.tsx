@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
 import { AccountMenu } from "@/components/account/AccountMenu";
 import { AuthBar } from "@/components/auth/AuthBar";
 import { ThemeSwitcherExtension } from "@/components/extensions/ThemeSwitcherExtension";
@@ -10,11 +10,27 @@ import { NotificationBell } from "@/components/forum/NotificationBell";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { defaultSiteConfig } from "@/config/default-site";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+
+const NAV_I18N_KEYS: Record<string, string> = {
+  home: "home",
+  presentation: "presentation",
+  reglement: "rules",
+  candidatures: "applications",
+  boutique: "shop",
+  equipe: "team",
+  actualites: "news",
+  forum: "forum",
+  galerie: "gallery",
+  statistiques: "stats",
+  contact: "contact",
+};
 
 export function SiteHeader() {
   const { config } = useSiteConfig();
   const { accounts, ready, hasPermission } = useAccount();
   const pathname = usePathname();
+  const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
   const showAdminLink = ready && (hasPermission("admin.access") || accounts.length === 0);
 
@@ -28,6 +44,17 @@ export function SiteHeader() {
     [config.nav, config.modules.forum],
   );
   const lc = config.layoutCopy ?? defaultSiteConfig.layoutCopy;
+
+  /** Retourne le libellé traduit s'il existe, sinon le label FR brut de config. */
+  const navLabel = (id: string, fallback: string) => {
+    const key = NAV_I18N_KEYS[id];
+    if (!key) return fallback;
+    try {
+      return t(key);
+    } catch {
+      return fallback;
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--rp-border)] bg-[color-mix(in_oklab,var(--rp-bg)_82%,transparent)] shadow-[var(--rp-shadow-sm)] backdrop-blur-xl backdrop-saturate-150">
@@ -64,7 +91,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="hidden flex-1 items-center justify-end gap-2 lg:flex lg:gap-3">
-          <nav className="flex flex-wrap items-center justify-end gap-0.5" aria-label="Navigation principale">
+          <nav className="flex flex-wrap items-center justify-end gap-0.5" aria-label={t("mainNavigation")}>
             {nav.map((item) => {
               const active = pathname === item.href;
               return (
@@ -77,7 +104,7 @@ export function SiteHeader() {
                       : "text-[var(--rp-muted)] hover:bg-white/[0.06] hover:text-[var(--rp-fg)]"
                   }`}
                 >
-                  {item.label}
+                  {navLabel(item.id, item.label)}
                   {active ? (
                     <span
                       className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-[var(--rp-primary)]"
@@ -89,6 +116,7 @@ export function SiteHeader() {
             })}
           </nav>
           <div className="hidden h-6 w-px bg-white/10 sm:block" aria-hidden />
+          <LanguageSwitcher />
           <Suspense fallback={null}>
             <AuthBar />
           </Suspense>
@@ -100,7 +128,7 @@ export function SiteHeader() {
               href="/admin"
               className="rounded-full border border-white/12 px-3 py-2 text-xs font-semibold text-[var(--rp-muted)] transition hover:border-[color-mix(in_oklab,var(--rp-primary)_40%,var(--rp-border))] hover:text-[var(--rp-fg)]"
             >
-              Admin
+              {t("admin")}
             </Link>
           ) : null}
         </div>
@@ -108,11 +136,11 @@ export function SiteHeader() {
         <button
           type="button"
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--rp-radius)] border border-white/12 text-[var(--rp-fg)] transition hover:bg-white/[0.06] lg:hidden"
-          aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-label={open ? t("closeMenu") : t("openMenu")}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="sr-only">{open ? "Fermer" : "Menu"}</span>
+          <span className="sr-only">{open ? t("closeMenu") : t("openMenu")}</span>
           {open ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path d="M6 6l12 12M18 6L6 18" />
@@ -130,11 +158,11 @@ export function SiteHeader() {
           <button
             type="button"
             className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm lg:hidden"
-            aria-label="Fermer le menu"
+            aria-label={t("closeMenu")}
             onClick={() => setOpen(false)}
           />
           <div className="relative z-50 border-t border-[var(--rp-border)] bg-[color-mix(in_oklab,var(--rp-bg)_96%,black)] px-4 py-4 shadow-[var(--rp-shadow-md)] lg:hidden">
-            <nav className="flex flex-col gap-1" aria-label="Navigation mobile">
+            <nav className="flex flex-col gap-1" aria-label={t("mobileNavigation")}>
               {nav.map((item) => {
                 const active = pathname === item.href;
                 return (
@@ -148,7 +176,7 @@ export function SiteHeader() {
                     }`}
                     onClick={() => setOpen(false)}
                   >
-                    {item.label}
+                    {navLabel(item.id, item.label)}
                   </Link>
                 );
               })}
@@ -158,10 +186,11 @@ export function SiteHeader() {
                   className="rounded-[var(--rp-radius)] px-4 py-3 text-sm text-[var(--rp-muted)] hover:bg-white/[0.06]"
                   onClick={() => setOpen(false)}
                 >
-                  Admin
+                  {t("admin")}
                 </Link>
               ) : null}
               <div className="mt-2 flex flex-col gap-2 border-t border-[var(--rp-border)] pt-3">
+                <LanguageSwitcher />
                 <div className="flex items-center gap-2">
                   <AccountMenu />
                   {config.modules.forum ? <NotificationBell /> : null}

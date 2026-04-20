@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { defaultSiteConfig } from "@/config/default-site";
 
 export function SiteFooter() {
   const { config } = useSiteConfig();
   const lc = config.layoutCopy ?? defaultSiteConfig.layoutCopy;
+  const t = useTranslations("nav");
   const year = new Date().getFullYear();
   return (
     <footer className="relative mt-auto border-t border-[var(--rp-border)] bg-[color-mix(in_oklab,var(--rp-surface)_75%,black)]">
@@ -66,7 +68,7 @@ export function SiteFooter() {
                 className="text-[var(--rp-muted)] transition hover:text-[var(--rp-primary)]"
                 href="/forum"
               >
-                Forum
+                {t("forum")}
               </Link>
             ) : null}
           </div>

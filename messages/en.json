@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "tagline": "FiveM RP Community Hub",
+    "description": "Harrata City — French-speaking FiveM Roleplay server: living economy, factions, jobs and realistic urban experience."
+  },
+  "nav": {
+    "home": "Home",
+    "presentation": "About",
+    "rules": "Rules",
+    "applications": "Whitelist",
+    "shop": "Shop",
+    "team": "Team",
+    "news": "News",
+    "forum": "Forum",
+    "gallery": "Gallery",
+    "stats": "Stats",
+    "contact": "Contact",
+    "admin": "Admin",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainNavigation": "Main navigation",
+    "mobileNavigation": "Mobile navigation"
+  },
+  "betaBanner": {
+    "badge": "Beta",
+    "title": "Free access during beta.",
+    "description": "Join the whitelist, no purchase required, zero pay-to-win.",
+    "cta": "Apply →",
+    "dismiss": "Dismiss beta banner"
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English"
+  },
+  "home": {
+    "hero": {
+      "badge": "FiveM Roleplay",
+      "title": "Harrata City",
+      "tagline": "The city never sleeps. Your story might.",
+      "description": "Harrata City — FiveM Roleplay server: living economy, factions, jobs and realistic urban experience.",
+      "ctaJoin": "Join (Cfx.re)",
+      "ctaJoinAlt": "Join",
+      "ctaDiscord": "Discord",
+      "ctaForum": "Forum"
+    },
+    "why": {
+      "title": "Why join us",
+      "description": "Features and content managed from admin: text, Discord / Cfx.re links, Tebex, colors and modules.",
+      "cta": "Discover the project →"
+    },
+    "features": [
+      {
+        "id": "quality",
+        "icon": "shield",
+        "title": "RP Quality",
+        "description": "Coherent scenes, fair-play and responsive staff for lasting immersion."
+      },
+      {
+        "id": "economy",
+        "icon": "economy",
+        "title": "Living economy",
+        "description": "Legal & illegal jobs, controlled money flows, RP-minded anti-grind."
+      },
+      {
+        "id": "factions",
+        "icon": "users",
+        "title": "Factions & companies",
+        "description": "Playable structures, documents, territories and narrative events."
+      },
+      {
+        "id": "map",
+        "icon": "map",
+        "title": "Optimized map",
+        "description": "Performance, clean props, clear RP zones and polished MLOs."
+      }
+    ],
+    "forum": {
+      "title": "Community forum",
+      "description": "Chat with players: introductions, lore, scene ideas and mutual aid. Open a topic or reply — everything is saved with the site configuration (browser / JSON export).",
+      "cta": "Open the forum →",
+      "categories": "Categories",
+      "topics": "Topics",
+      "joinDiscussion": "Join the discussion",
+      "joinDiscussionDescription": "Introductions, lore, help — everyone can participate."
+    },
+    "news": {
+      "title": "Latest news",
+      "seeAll": "See all →"
+    },
+    "stats": {
+      "title": "Statistics (overview)",
+      "description": "Example numbers — replace them with your data (API, database) from the site configuration.",
+      "cta": "View charts →"
+    }
+  },
+  "presentation": {
+    "eyebrow": "About",
+    "title": "One server, one identity, one experience",
+    "subtitle": "Lore, philosophy, systems and media: everything that defines your RP world.",
+    "strengthsTitle": "Strengths",
+    "economyTitle": "Economy & gameplay",
+    "economyBlurb": "A circular economy: salaries, stocks, fictional taxes, gray market and real risks. Money has weight here.",
+    "statsLink": "View statistics →",
+    "mediaTitle": "Media",
+    "mediaDescription": "Images, videos and trailers — manageable from admin.",
+    "mediaOpenGallery": "Open full gallery →",
+    "mediaEmpty": "No media yet. Add some from Admin → Content → Presentation.",
+    "errorInvalidYoutube": "Invalid YouTube ID",
+    "youtubeVideo": "YouTube video",
+    "missingUrl": "Missing URL",
+    "lore": [
+      {
+        "title": "Los Santos, differently",
+        "body": "Every street here tells a story of debt, alliance or betrayal. You're not a scoreboard: you're a resident."
+      },
+      {
+        "title": "Philosophy",
+        "body": "We prioritize narrative, respect for the setting, and slow but meaningful progression. Grinding isn't the protagonist."
+      }
+    ],
+    "strengths": [
+      "Experienced & transparent staff",
+      "Internal tools (dispatch, records, companies)",
+      "Seasonality: narrative arcs & events",
+      "Anti-cheat & structured logs"
+    ]
+  },
+  "rules": {
+    "eyebrow": "Rules",
+    "title": "Gameplay framework & rules",
+    "subtitle": "The rules that ensure a healthy and fair RP experience for everyone."
+  },
+  "serverPanel": {
+    "server": "Server",
+    "editableIndicators": "Editable indicators (admin)",
+    "live": "Live",
+    "playersOnline": "Players online",
+    "status": "Status",
+    "connection": "Connection",
+    "copyIp": "Copy IP / command",
+    "copied": "Copied",
+    "online": "Online",
+    "maintenance": "Maintenance",
+    "offline": "Offline",
+    "sync": "Sync…",
+    "offlineApi": "Offline API",
+    "syncedAt": "Synced at {time}",
+    "syncedLive": "Live synced",
+    "apiUnreachable": "API unreachable — fallback values shown"
+  }
+}

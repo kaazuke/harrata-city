@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const STORAGE_KEY = "harrata:beta-banner-dismissed";
 
@@ -8,9 +10,10 @@ const STORAGE_KEY = "harrata:beta-banner-dismissed";
  * Bandeau de bêta gratuite affiché en haut du site.
  * - Couleurs cohérentes avec la charte (turquoise → indigo).
  * - Dismissable par le visiteur (persistence localStorage).
- * - Ne clignote pas au chargement grâce à un rendu conditionnel après hydration.
+ * - Textes internationalisés via next-intl.
  */
 export function BetaBanner() {
+  const t = useTranslations("betaBanner");
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -37,10 +40,9 @@ export function BetaBanner() {
   return (
     <div
       role="region"
-      aria-label="Annonce bêta gratuite"
+      aria-label={t("title")}
       className="relative isolate overflow-hidden border-b border-[color:var(--rp-border)]/70 bg-gradient-to-r from-[#5eead4]/15 via-[#818cf8]/15 to-[#f472b6]/15"
     >
-      {/* Halos décoratifs */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-8 left-10 h-24 w-24 rounded-full bg-[#5eead4]/30 blur-3xl" />
         <div className="absolute -bottom-8 right-10 h-24 w-24 rounded-full bg-[#818cf8]/30 blur-3xl" />
@@ -52,27 +54,25 @@ export function BetaBanner() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#5eead4] opacity-75" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#5eead4]" />
           </span>
-          Beta
+          {t("badge")}
         </span>
 
         <p className="flex-1 text-[13px] leading-tight text-[var(--rp-fg)] sm:text-sm">
-          <span className="font-semibold text-white">Accès gratuit pendant la bêta.</span>{" "}
-          <span className="text-[var(--rp-fg-muted)]">
-            Rejoignez la whitelist, aucun achat requis, zéro pay-to-win.
-          </span>
+          <span className="font-semibold text-white">{t("title")}</span>{" "}
+          <span className="text-[var(--rp-fg-muted)]">{t("description")}</span>
         </p>
 
-        <a
+        <Link
           href="/candidatures"
           className="hidden shrink-0 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white transition hover:bg-white/10 sm:inline-flex"
         >
-          Candidater →
-        </a>
+          {t("cta")}
+        </Link>
 
         <button
           type="button"
           onClick={handleDismiss}
-          aria-label="Masquer le bandeau bêta"
+          aria-label={t("dismiss")}
           className="shrink-0 rounded-full p-1 text-[var(--rp-fg-muted)] transition hover:bg-white/10 hover:text-white"
         >
           <svg

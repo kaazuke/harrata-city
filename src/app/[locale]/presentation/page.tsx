@@ -1,34 +1,35 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { Card, CardBody } from "@/components/ui/Card";
 import type { PresentationMedia } from "@/config/types";
 
+type LoreItem = { title: string; body: string };
+
 export default function PresentationPage() {
   const { config } = useSiteConfig();
+  const t = useTranslations("presentation");
   const media: PresentationMedia[] = config.presentationMedia ?? [];
+
+  /** next-intl typed arrays : on récupère les listes via `raw` pour simplifier. */
+  const loreItems = t.raw("lore") as LoreItem[];
+  const strengths = t.raw("strengths") as string[];
+
   return (
     <div>
-      <PageHero
-        eyebrow="Présentation"
-        title="Un serveur, une identité, une expérience"
-        subtitle="Lore, philosophie, systèmes et médias : tout ce qui définit votre monde RP."
-      />
+      <PageHero eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle")} />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid gap-6 lg:grid-cols-2">
-          {config.lore.map((s) => (
+          {loreItems.map((s) => (
             <Card key={s.title}>
               <CardBody>
-                <h2 className="text-xl font-semibold text-[var(--rp-fg)]">
-                  {s.title}
-                </h2>
-                <p className="mt-3 text-sm leading-relaxed text-[var(--rp-muted)]">
-                  {s.body}
-                </p>
+                <h2 className="text-xl font-semibold text-[var(--rp-fg)]">{s.title}</h2>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--rp-muted)]">{s.body}</p>
               </CardBody>
             </Card>
           ))}
@@ -37,11 +38,9 @@ export default function PresentationPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <Card>
             <CardBody>
-              <h2 className="text-xl font-semibold text-[var(--rp-fg)]">
-                Points forts
-              </h2>
+              <h2 className="text-xl font-semibold text-[var(--rp-fg)]">{t("strengthsTitle")}</h2>
               <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-[var(--rp-muted)]">
-                {config.strengths.map((s) => (
+                {strengths.map((s) => (
                   <li key={s}>{s}</li>
                 ))}
               </ul>
@@ -49,14 +48,12 @@ export default function PresentationPage() {
           </Card>
           <Card>
             <CardBody>
-              <h2 className="text-xl font-semibold text-[var(--rp-fg)]">
-                Économie & gameplay
-              </h2>
+              <h2 className="text-xl font-semibold text-[var(--rp-fg)]">{t("economyTitle")}</h2>
               <p className="mt-3 text-sm leading-relaxed text-[var(--rp-muted)]">
-                {config.economyBlurb}
+                {t("economyBlurb")}
               </p>
               <div className="mt-6 text-sm font-semibold text-[var(--rp-primary)]">
-                <Link href="/statistiques">Voir les statistiques →</Link>
+                <Link href="/statistiques">{t("statsLink")}</Link>
               </div>
             </CardBody>
           </Card>
@@ -65,22 +62,20 @@ export default function PresentationPage() {
         <div className="mt-12">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-semibold text-[var(--rp-fg)]">Médias</h2>
-              <p className="mt-2 text-sm text-[var(--rp-muted)]">
-                Images, vidéos et trailers — gérables depuis l’admin.
-              </p>
+              <h2 className="text-2xl font-semibold text-[var(--rp-fg)]">{t("mediaTitle")}</h2>
+              <p className="mt-2 text-sm text-[var(--rp-muted)]">{t("mediaDescription")}</p>
             </div>
             <Link
               href="/galerie"
               className="text-sm font-semibold text-[var(--rp-primary)] hover:underline"
             >
-              Ouvrir la galerie complète →
+              {t("mediaOpenGallery")}
             </Link>
           </div>
 
           {media.length === 0 ? (
             <p className="mt-8 rounded-[var(--rp-radius)] border border-dashed border-[var(--rp-border)] bg-black/15 px-6 py-8 text-center text-sm text-[var(--rp-muted)]">
-              Aucun média pour l’instant. Ajoutez-en depuis Admin → Contenus → Présentation.
+              {t("mediaEmpty")}
             </p>
           ) : (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -120,7 +115,6 @@ function MediaCard({ item }: { item: PresentationMedia }) {
 function youTubeId(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
-  // Forme courte : pas d’URL, juste l’ID (11 caractères alphanum/_-)
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
   try {
     const url = new URL(trimmed);
@@ -140,13 +134,14 @@ function youTubeId(input: string): string | null {
 }
 
 function MediaPlayer({ item }: { item: PresentationMedia }) {
+  const t = useTranslations("presentation");
   if (item.type === "youtube") {
     const id = youTubeId(item.src);
-    if (!id) return <BrokenMedia label="ID YouTube invalide" />;
+    if (!id) return <BrokenMedia label={t("errorInvalidYoutube")} />;
     return (
       <iframe
         src={`https://www.youtube.com/embed/${id}`}
-        title={item.title ?? "Vidéo YouTube"}
+        title={item.title ?? t("youtubeVideo")}
         loading="lazy"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
@@ -165,8 +160,7 @@ function MediaPlayer({ item }: { item: PresentationMedia }) {
       />
     );
   }
-  // image
-  if (!item.src) return <BrokenMedia label="URL manquante" />;
+  if (!item.src) return <BrokenMedia label={t("missingUrl")} />;
   return (
     <Image
       src={item.src}
