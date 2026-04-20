@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -32,6 +33,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function AdminServerTab() {
+  const t = useTranslations("admin.server");
   const { config, setConfig } = useSiteConfig();
   const server = config.server;
   const [probing, setProbing] = useState(false);
@@ -49,7 +51,7 @@ export function AdminServerTab() {
       if (server.cfxCode?.trim()) params.set("code", server.cfxCode.trim());
       if (server.playersJsonUrl?.trim()) params.set("playersUrl", server.playersJsonUrl.trim());
       if (!params.toString()) {
-        setProbe({ ok: false, message: "Renseigne un code Cfx.re ou une URL /players.json d’abord." });
+        setProbe({ ok: false, message: t("probeNeedInput") });
       } else {
         const res = await fetch(`/api/server/live?${params.toString()}`, { cache: "no-store" });
         const data = (await res.json()) as LiveProbeResult;
@@ -83,14 +85,11 @@ export function AdminServerTab() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader
-          title="Serveur FiveM — connexion live"
-          subtitle="Synchronise automatiquement le nombre de joueurs, le max et le statut depuis Cfx.re et/ou ton endpoint /players.json."
-        />
+        <CardHeader title={t("liveTitle")} subtitle={t("liveSubtitle")} />
         <CardBody className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <FieldLabel>Code Cfx.re (partage)</FieldLabel>
+              <FieldLabel>{t("cfxCode")}</FieldLabel>
               <Input
                 className="mt-2"
                 value={server.cfxCode ?? ""}
@@ -100,13 +99,11 @@ export function AdminServerTab() {
                 placeholder="ex. abcxyz"
               />
               <p className="mt-1 text-[11px] leading-relaxed text-[var(--rp-muted)]">
-                Récupère-le sur la fiche du serveur sur servers.fivem.net : URL de type{" "}
-                <span className="font-mono">servers.fivem.net/servers/detail/abcxyz</span>. Le code est
-                la partie finale.
+                {t("cfxHint")}
               </p>
             </div>
             <div>
-              <FieldLabel>URL publique /players.json</FieldLabel>
+              <FieldLabel>{t("playersUrl")}</FieldLabel>
               <Input
                 className="mt-2"
                 value={server.playersJsonUrl ?? ""}
@@ -114,8 +111,7 @@ export function AdminServerTab() {
                 placeholder="https://ip-publique:30120/players.json"
               />
               <p className="mt-1 text-[11px] leading-relaxed text-[var(--rp-muted)]">
-                Endpoint natif FiveM. Doit être accessible publiquement (IP + port, généralement{" "}
-                <span className="font-mono">30120</span>). Pas de loopback / LAN accepté.
+                {t("playersHint")}
               </p>
             </div>
           </div>
@@ -123,9 +119,9 @@ export function AdminServerTab() {
           <div className="grid gap-4 md:grid-cols-3">
             <label className="flex items-center justify-between gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-3 py-2 text-sm text-[var(--rp-fg)]">
               <span>
-                <span className="block">Synchro automatique</span>
+                <span className="block">{t("autoSync")}</span>
                 <span className="mt-0.5 block text-[10px] text-[var(--rp-muted)]">
-                  Poll l’API live sur toutes les pages.
+                  {t("autoSyncHint")}
                 </span>
               </span>
               <input
@@ -136,7 +132,7 @@ export function AdminServerTab() {
               />
             </label>
             <div>
-              <FieldLabel>Rafraîchissement (secondes)</FieldLabel>
+              <FieldLabel>{t("refreshSec")}</FieldLabel>
               <Input
                 className="mt-2"
                 type="number"
@@ -150,11 +146,11 @@ export function AdminServerTab() {
             </div>
             <div className="flex items-end gap-2">
               <Button type="button" onClick={runProbe} disabled={probing || !hasLive}>
-                {probing ? "Test…" : "Tester la connexion"}
+                {probing ? t("testing") : t("testConnection")}
               </Button>
               {probe?.ok ? (
                 <Button type="button" variant="outline" onClick={applyProbe}>
-                  Appliquer
+                  {t("apply")}
                 </Button>
               ) : null}
             </div>
@@ -174,7 +170,7 @@ export function AdminServerTab() {
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={`data:image/png;base64,${probe.iconBase64}`}
-                      alt="Icône serveur"
+                      alt={t("serverIconAlt")}
                       width={48}
                       height={48}
                       className="h-12 w-12 shrink-0 rounded-md border border-[var(--rp-border)] bg-black/30"
@@ -182,31 +178,31 @@ export function AdminServerTab() {
                   ) : null}
                   <div className="space-y-1">
                     <div className="font-semibold text-[var(--rp-success)]">
-                      Connexion réussie ({(probe.source ?? []).join(", ") || "ok"})
+                      {t("okTitle", { sources: (probe.source ?? []).join(", ") || "ok" })}
                     </div>
                     <div>
-                      <span className="text-[var(--rp-muted)]">Hostname :</span>{" "}
+                      <span className="text-[var(--rp-muted)]">{t("hostname")}</span>{" "}
                       <span className="text-[var(--rp-fg)]">{probe.hostname ?? "—"}</span>
                     </div>
                     {probe.description ? (
                       <div>
-                        <span className="text-[var(--rp-muted)]">Description :</span>{" "}
+                        <span className="text-[var(--rp-muted)]">{t("description")}</span>{" "}
                         <span className="text-[var(--rp-fg)]">{probe.description}</span>
                       </div>
                     ) : null}
                     <div>
-                      <span className="text-[var(--rp-muted)]">Joueurs :</span>{" "}
+                      <span className="text-[var(--rp-muted)]">{t("players")}</span>{" "}
                       <span className="text-[var(--rp-fg)]">
                         {probe.playersOnline ?? "?"} / {probe.maxPlayers ?? "?"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[var(--rp-muted)]">Statut :</span>{" "}
+                      <span className="text-[var(--rp-muted)]">{t("status")}</span>{" "}
                       <span className="text-[var(--rp-fg)]">{probe.status ?? "—"}</span>
                     </div>
                     {probe.serverVersion ? (
                       <div>
-                        <span className="text-[var(--rp-muted)]">Version :</span>{" "}
+                        <span className="text-[var(--rp-muted)]">{t("version")}</span>{" "}
                         <span className="font-mono text-[var(--rp-fg)]">{probe.serverVersion}</span>
                         {probe.gamename ? (
                           <span className="text-[var(--rp-muted)]"> · {probe.gamename}</span>
@@ -218,13 +214,13 @@ export function AdminServerTab() {
                     ) : null}
                     {probe.endpoint ? (
                       <div>
-                        <span className="text-[var(--rp-muted)]">Endpoint :</span>{" "}
+                        <span className="text-[var(--rp-muted)]">{t("endpoint")}</span>{" "}
                         <span className="font-mono text-[var(--rp-fg)]">{probe.endpoint}</span>
                       </div>
                     ) : null}
                     {probe.errors && Object.keys(probe.errors).length > 0 ? (
                       <div className="pt-1 text-[var(--rp-muted)]">
-                        Avertissements :{" "}
+                        {t("warnings")}{" "}
                         {Object.entries(probe.errors)
                           .map(([k, v]) => `${k}: ${v}`)
                           .join(" · ")}
@@ -234,8 +230,8 @@ export function AdminServerTab() {
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <div className="font-semibold text-[var(--rp-danger)]">Échec de la connexion</div>
-                  <div>{probe.message || probe.error || "Impossible de contacter les sources."}</div>
+                  <div className="font-semibold text-[var(--rp-danger)]">{t("failTitle")}</div>
+                  <div>{probe.message || probe.error || t("failGeneric")}</div>
                   {probe.errors ? (
                     <div className="text-[var(--rp-muted)]">
                       {Object.entries(probe.errors)
@@ -251,13 +247,10 @@ export function AdminServerTab() {
       </Card>
 
       <Card>
-        <CardHeader
-          title="Affichage & valeurs de secours"
-          subtitle="Utilisées si la synchro live est désactivée ou injoignable."
-        />
+        <CardHeader title={t("fallbackTitle")} subtitle={t("fallbackSubtitle")} />
         <CardBody className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <FieldLabel>IP / commande à afficher</FieldLabel>
+            <FieldLabel>{t("ipCmd")}</FieldLabel>
             <Input
               className="mt-2"
               value={server.ip}
@@ -266,7 +259,7 @@ export function AdminServerTab() {
             />
           </div>
           <div className="md:col-span-2">
-            <FieldLabel>Nom affiché (displayName)</FieldLabel>
+            <FieldLabel>{t("displayName")}</FieldLabel>
             <Input
               className="mt-2"
               value={server.displayName}
@@ -275,7 +268,7 @@ export function AdminServerTab() {
             />
           </div>
           <div>
-            <FieldLabel>Joueurs en ligne (fallback)</FieldLabel>
+            <FieldLabel>{t("playersFallback")}</FieldLabel>
             <Input
               className="mt-2"
               type="number"
@@ -284,7 +277,7 @@ export function AdminServerTab() {
             />
           </div>
           <div>
-            <FieldLabel>Slots max (fallback)</FieldLabel>
+            <FieldLabel>{t("maxSlots")}</FieldLabel>
             <Input
               className="mt-2"
               type="number"
@@ -293,7 +286,7 @@ export function AdminServerTab() {
             />
           </div>
           <div>
-            <FieldLabel>Statut (fallback)</FieldLabel>
+            <FieldLabel>{t("statusFallback")}</FieldLabel>
             <select
               className="mt-2 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2.5 text-sm text-[var(--rp-fg)]"
               value={server.status}
@@ -301,13 +294,13 @@ export function AdminServerTab() {
                 setServer({ status: e.target.value as ServerBlock["status"] })
               }
             >
-              <option value="online">En ligne</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="offline">Hors ligne</option>
+              <option value="online">{t("statusOnline")}</option>
+              <option value="maintenance">{t("statusMaintenance")}</option>
+              <option value="offline">{t("statusOffline")}</option>
             </select>
           </div>
           <div>
-            <FieldLabel>URL Cfx.re (bouton « rejoindre »)</FieldLabel>
+            <FieldLabel>{t("cfxJoinUrl")}</FieldLabel>
             <Input
               className="mt-2"
               value={server.cfxJoinUrl ?? ""}
@@ -319,13 +312,10 @@ export function AdminServerTab() {
       </Card>
 
       <Card>
-        <CardHeader
-          title="Réseaux sociaux & boutique"
-          subtitle="URLs utilisées dans le header, footer et boutons hero."
-        />
+        <CardHeader title={t("socialTitle")} subtitle={t("socialSubtitle")} />
         <CardBody className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <FieldLabel>Discord URL</FieldLabel>
+            <FieldLabel>{t("discordUrl")}</FieldLabel>
             <Input
               className="mt-2"
               value={config.social.discord}
@@ -336,7 +326,7 @@ export function AdminServerTab() {
             />
           </div>
           <div className="md:col-span-2">
-            <FieldLabel>Cfx.re URL (page serveur publique)</FieldLabel>
+            <FieldLabel>{t("cfxUrl")}</FieldLabel>
             <Input
               className="mt-2"
               value={config.social.cfx ?? ""}
@@ -350,7 +340,7 @@ export function AdminServerTab() {
             />
           </div>
           <div className="md:col-span-2">
-            <FieldLabel>Tebex URL</FieldLabel>
+            <FieldLabel>{t("tebexUrl")}</FieldLabel>
             <Input
               className="mt-2"
               value={config.social.tebex ?? ""}

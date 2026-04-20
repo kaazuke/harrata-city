@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useMemo, useState } from "react";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
@@ -10,26 +11,25 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import type { ForumLogAction, ForumLogEntry } from "@/config/types";
 import type { Account } from "@/lib/account/types";
-import {
-  clearForumLogs,
-  FORUM_ACTION_LABEL,
-  FORUM_ACTION_TONE,
-} from "@/lib/forum-logs";
+import { clearForumLogs, FORUM_ACTION_TONE } from "@/lib/forum-logs";
 import { formatForumDate, formatForumRelative } from "@/lib/forum-mutate";
 
-const ACTION_FILTERS: { value: "all" | ForumLogAction; label: string }[] = [
-  { value: "all", label: "Toutes" },
-  { value: "topic_created", label: "Sujets créés" },
-  { value: "topic_deleted", label: "Sujets supprimés" },
-  { value: "topic_edited", label: "Sujets modifiés" },
-  { value: "topic_pinned", label: "Épingles" },
-  { value: "topic_locked", label: "Verrouillages" },
-  { value: "reply_created", label: "Réponses" },
-  { value: "reply_deleted", label: "Réponses supprimées" },
-  { value: "reply_edited", label: "Réponses éditées" },
+const FILTER_ORDER: ("all" | ForumLogAction)[] = [
+  "all",
+  "topic_created",
+  "topic_deleted",
+  "topic_edited",
+  "topic_pinned",
+  "topic_unpinned",
+  "topic_locked",
+  "topic_unlocked",
+  "reply_created",
+  "reply_deleted",
+  "reply_edited",
 ];
 
 export function AdminForumLogsTab() {
+  const t = useTranslations("admin.forumLogs");
   const { config, setConfig, persist } = useSiteConfig();
   const { findByUsername } = useAccount();
   const [filter, setFilter] = useState<"all" | ForumLogAction>("all");
@@ -42,8 +42,8 @@ export function AdminForumLogsTab() {
 
   const topicCategoryMap = useMemo(() => {
     const map = new Map<string, string>();
-    for (const t of config.forumTopics ?? []) {
-      map.set(t.id, t.categoryId);
+    for (const top of config.forumTopics ?? []) {
+      map.set(top.id, top.categoryId);
     }
     return map;
   }, [config.forumTopics]);
@@ -69,7 +69,7 @@ export function AdminForumLogsTab() {
   }, [logs, filter, search]);
 
   function handleClear() {
-    if (!confirm("Vider entièrement le journal de modération du forum ?")) return;
+    if (!confirm(t("clearConfirm"))) return;
     const next = clearForumLogs(config);
     setConfig(next);
     persist(next);
@@ -110,31 +110,27 @@ export function AdminForumLogsTab() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-[var(--rp-fg)]">
-            Journal du forum
-          </h2>
+          <h2 className="text-base font-semibold text-[var(--rp-fg)]">{t("journalTitle")}</h2>
           <p className="mt-1 text-xs text-[var(--rp-muted)]">
-            Toutes les actions de modération et publications sont consignées ici
-            (capacité maximale : 500 entrées). {logs.length} entrée
-            {logs.length > 1 ? "s" : ""} actuellement.
+            {t("journalSubtitle", { count: logs.length })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={exportFullForum}>
-            Exporter forum complet
+            {t("exportFull")}
           </Button>
           <Button type="button" variant="outline" onClick={exportJson} disabled={!filtered.length}>
-            Exporter logs filtrés
+            {t("exportFiltered")}
           </Button>
           <Button type="button" variant="ghost" onClick={handleClear} disabled={!logs.length}>
-            Vider
+            {t("clearBtn")}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-[1fr_auto]">
         <Input
-          placeholder="Rechercher (acteur, cible, sujet, note)…"
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -143,9 +139,9 @@ export function AdminForumLogsTab() {
           value={filter}
           onChange={(e) => setFilter(e.target.value as "all" | ForumLogAction)}
         >
-          {ACTION_FILTERS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
+          {FILTER_ORDER.map((value) => (
+            <option key={value} value={value}>
+              {value === "all" ? t("filterAll") : t(`filterLabels.${value}`)}
             </option>
           ))}
         </select>
@@ -153,7 +149,7 @@ export function AdminForumLogsTab() {
 
       {filtered.length === 0 ? (
         <p className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-4 py-6 text-sm text-[var(--rp-muted)]">
-          Aucun log{logs.length ? " ne correspond à ces filtres" : " pour le moment"}.
+          {logs.length ? t("noLogsFiltered") : t("noLogsYet")}
         </p>
       ) : (
         <div className="overflow-hidden rounded-[var(--rp-radius)] border border-[var(--rp-border)]">
@@ -185,6 +181,8 @@ function LogRow({
   target: Account | null;
   categoryId: string | null;
 }) {
+  const t = useTranslations("admin.forumLogs");
+  const locale = useLocale();
   const topicHref =
     log.topicId && categoryId ? `/forum/${categoryId}/${log.topicId}` : null;
   return (
@@ -192,12 +190,8 @@ function LogRow({
       <Avatar account={actor} fallbackName={log.actor} size="sm" />
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={FORUM_ACTION_TONE[log.action]}>
-            {FORUM_ACTION_LABEL[log.action]}
-          </Badge>
-          <span className="text-sm font-semibold text-[var(--rp-fg)]">
-            @{log.actor}
-          </span>
+          <Badge tone={FORUM_ACTION_TONE[log.action]}>{t(`actionLabels.${log.action}`)}</Badge>
+          <span className="text-sm font-semibold text-[var(--rp-fg)]">@{log.actor}</span>
           <span className="rounded-full border border-[var(--rp-border)] bg-black/30 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[var(--rp-muted)]">
             {log.actorRole}
           </span>
@@ -210,7 +204,7 @@ function LogRow({
         </div>
         {log.topicTitle ? (
           <div className="mt-1 truncate text-xs text-[var(--rp-muted)]">
-            Sujet :{" "}
+            {t("topicLine")}{" "}
             {topicHref ? (
               <Link href={topicHref} className="text-[var(--rp-primary)] hover:underline">
                 {log.topicTitle}
@@ -226,8 +220,8 @@ function LogRow({
           </p>
         ) : null}
       </div>
-      <div className="text-right text-[11px] text-[var(--rp-muted)]" title={formatForumDate(log.at)}>
-        {formatForumRelative(log.at)}
+      <div className="text-right text-[11px] text-[var(--rp-muted)]" title={formatForumDate(log.at, locale)}>
+        {formatForumRelative(log.at, locale)}
       </div>
     </li>
   );

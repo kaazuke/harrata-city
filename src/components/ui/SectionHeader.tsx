@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 /** En-tête de section : titre + sous-texte + lien optionnel (UX : parcours clair). */
 export function SectionHeader({

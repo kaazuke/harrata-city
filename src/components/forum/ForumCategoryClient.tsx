@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
@@ -34,6 +34,7 @@ export function ForumCategoryClient() {
   const { config } = useLocalizedConfig();
   const { user, roleDef, findByUsername, hasPermission } = useAccount();
   const t = useTranslations("forum.category");
+  const locale = useLocale();
   const categories = Array.isArray(config.forumCategories)
     ? config.forumCategories
     : defaultSiteConfig.forumCategories;
@@ -213,7 +214,7 @@ export function ForumCategoryClient() {
                           <div className="mt-1 text-[11px] text-[var(--rp-muted)]">
                             {t("by", {
                               author: authorAcc?.profile.displayName || top.author,
-                              when: formatForumRelative(top.createdAt),
+                              when: formatForumRelative(top.createdAt, locale),
                             })}
                           </div>
                         </div>
@@ -228,7 +229,7 @@ export function ForumCategoryClient() {
                       </div>
                       <div className="md:col-span-3 md:self-center">
                         <div className="text-sm font-medium text-[var(--rp-fg)]">{lastAuthor}</div>
-                        <div className="text-[11px] text-[var(--rp-muted)]">{formatForumRelative(updated)}</div>
+                        <div className="text-[11px] text-[var(--rp-muted)]">{formatForumRelative(updated, locale)}</div>
                       </div>
                     </Link>
                   </li>

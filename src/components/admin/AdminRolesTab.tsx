@@ -1,32 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
-import {
-  BUILTIN_ROLE_DEFINITIONS,
-  PERMISSIONS,
-  PERMISSION_LABELS,
-} from "@/lib/account/types";
+import { BUILTIN_ROLE_DEFINITIONS, PERMISSIONS } from "@/lib/account/types";
 import type { Permission, RoleDefinition, RoleTier, RoleTone } from "@/lib/account/types";
 
-const TONE_OPTIONS: { value: RoleTone; label: string }[] = [
-  { value: "neutral", label: "Neutre" },
-  { value: "primary", label: "Primaire" },
-  { value: "accent", label: "Accent" },
-  { value: "success", label: "Succès (vert)" },
-  { value: "warning", label: "Warning (jaune)" },
-  { value: "danger", label: "Danger (rouge)" },
+const TONE_VALUES: RoleTone[] = [
+  "neutral",
+  "primary",
+  "accent",
+  "success",
+  "warning",
+  "danger",
 ];
 
-const TIER_OPTIONS: { value: RoleTier; label: string }[] = [
-  { value: "admin", label: "Administration" },
-  { value: "moderator", label: "Modération" },
-  { value: "member", label: "Membre" },
-];
+const TIER_VALUES: RoleTier[] = ["admin", "moderator", "member"];
+
+function permMsgKey(perm: Permission): string {
+  return perm.replace(/\./g, "_");
+}
 
 function slugify(s: string): string {
   return s
@@ -38,6 +35,8 @@ function slugify(s: string): string {
 }
 
 export function AdminRolesTab() {
+  const t = useTranslations("admin.roles");
+  const tPerm = useTranslations("admin.permissions");
   const { config, setConfig } = useSiteConfig();
   const { accounts } = useAccount();
   const roles = useMemo<RoleDefinition[]>(
@@ -78,12 +77,12 @@ export function AdminRolesTab() {
     setMsg(null);
     const label = newLabel.trim();
     if (!label) {
-      setMsg({ ok: false, text: "Indiquez un nom de rôle." });
+      setMsg({ ok: false, text: t("errName") });
       return;
     }
     let id = slugify(label);
     if (!id) {
-      setMsg({ ok: false, text: "Nom invalide." });
+      setMsg({ ok: false, text: t("errInvalidName") });
       return;
     }
     if (roles.some((r) => r.id === id)) {
@@ -102,33 +101,30 @@ export function AdminRolesTab() {
     };
     setConfig({ ...config, roles: [...roles, role] });
     setNewLabel("");
-    setMsg({ ok: true, text: `Rôle « ${label} » créé.` });
+    setMsg({ ok: true, text: t("created", { label }) });
   }
 
   function removeRole(id: string) {
     const role = roles.find((r) => r.id === id);
     if (!role) return;
     if (role.builtin) {
-      setMsg({ ok: false, text: "Les rôles builtin ne peuvent pas être supprimés." });
+      setMsg({ ok: false, text: t("errBuiltinDelete") });
       return;
     }
     const usage = usageByRole.get(id) ?? 0;
     const ok = confirm(
       usage > 0
-        ? `Supprimer le rôle « ${role.label} » ? ${usage} compte(s) seront automatiquement repassés à « Membre ».`
-        : `Supprimer le rôle « ${role.label} » ?`,
+        ? t("confirmDeleteWithUsers", { label: role.label, usage })
+        : t("confirmDelete", { label: role.label }),
     );
     if (!ok) return;
     setConfig({ ...config, roles: roles.filter((r) => r.id !== id) });
-    setMsg({ ok: true, text: `Rôle « ${role.label} » supprimé.` });
+    setMsg({ ok: true, text: t("deleted", { label: role.label }) });
   }
 
   return (
     <Card>
-      <CardHeader
-        title="Rôles & permissions"
-        subtitle="Créez vos propres grades (Helper, Streamer, VIP…) et configurez finement leurs permissions. Les 3 rôles « builtin » (Admin / Modérateur / Membre) restent éditables mais non supprimables."
-      />
+      <CardHeader title={t("title")} subtitle={t("subtitle")} />
       <CardBody className="space-y-6">
         {msg ? (
           <p
@@ -140,21 +136,21 @@ export function AdminRolesTab() {
 
         <div className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 p-4">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-            Nouveau rôle
+            {t("newRole")}
           </div>
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[220px]">
-              <label className="text-xs font-semibold text-[var(--rp-muted)]">Libellé</label>
+              <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("label")}</label>
               <Input
                 className="mt-1.5"
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="Ex. Helper, Streamer, VIP…"
+                placeholder={t("placeholderNew")}
                 maxLength={40}
               />
             </div>
             <Button type="button" onClick={addRole}>
-              Ajouter le rôle
+              {t("addRole")}
             </Button>
           </div>
         </div>
@@ -178,11 +174,11 @@ export function AdminRolesTab() {
                       </span>
                       {role.builtin ? (
                         <span className="rounded-full border border-[color-mix(in_oklab,var(--rp-primary)_45%,var(--rp-border))] bg-[color-mix(in_oklab,var(--rp-primary)_12%,transparent)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--rp-primary)]">
-                          builtin
+                          {t("builtin")}
                         </span>
                       ) : null}
                       <span className="text-[11px] text-[var(--rp-muted)]">
-                        {usage} compte(s) assigné(s)
+                        {t("accountsAssigned", { count: usage })}
                       </span>
                     </div>
                     {role.description ? (
@@ -195,14 +191,14 @@ export function AdminRolesTab() {
                       className="rounded-full border border-[color-mix(in_oklab,var(--rp-danger)_45%,var(--rp-border))] px-3 py-1.5 text-xs font-semibold text-[var(--rp-danger)] hover:bg-[color-mix(in_oklab,var(--rp-danger)_10%,transparent)]"
                       onClick={() => removeRole(role.id)}
                     >
-                      Supprimer
+                      {t("delete")}
                     </button>
                   ) : null}
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
                   <div>
-                    <label className="text-xs font-semibold text-[var(--rp-muted)]">Libellé</label>
+                    <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("label")}</label>
                     <Input
                       className="mt-1.5"
                       value={role.label}
@@ -211,7 +207,7 @@ export function AdminRolesTab() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-[var(--rp-muted)]">Tier</label>
+                    <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("tier")}</label>
                     <select
                       className="mt-1.5 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/30 px-3 py-2 text-sm text-[var(--rp-fg)] disabled:opacity-60"
                       value={role.tier}
@@ -220,15 +216,17 @@ export function AdminRolesTab() {
                         updateRole(role.id, { tier: e.target.value as RoleTier })
                       }
                     >
-                      {TIER_OPTIONS.map((t) => (
-                        <option key={t.value} value={t.value}>
-                          {t.label}
+                      {TIER_VALUES.map((tier) => (
+                        <option key={tier} value={tier}>
+                          {t(`tiers.${tier}`)}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-[var(--rp-muted)]">Couleur badge</label>
+                    <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                      {t("badgeColor")}
+                    </label>
                     <select
                       className="mt-1.5 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/30 px-3 py-2 text-sm text-[var(--rp-fg)]"
                       value={role.tone}
@@ -236,16 +234,16 @@ export function AdminRolesTab() {
                         updateRole(role.id, { tone: e.target.value as RoleTone })
                       }
                     >
-                      {TONE_OPTIONS.map((t) => (
-                        <option key={t.value} value={t.value}>
-                          {t.label}
+                      {TONE_VALUES.map((tone) => (
+                        <option key={tone} value={tone}>
+                          {t(`tones.${tone}`)}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="md:col-span-3">
                     <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                      Description (optionnelle)
+                      {t("descOptional")}
                     </label>
                     <Textarea
                       className="mt-1.5 min-h-[3rem]"
@@ -253,14 +251,14 @@ export function AdminRolesTab() {
                       onChange={(e) =>
                         updateRole(role.id, { description: e.target.value || undefined })
                       }
-                      placeholder="À quoi sert ce rôle ?"
+                      placeholder={t("descPlaceholder")}
                     />
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <div className="text-xs font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                    Permissions
+                    {t("permissions")}
                   </div>
                   <div className="mt-2 grid gap-2 md:grid-cols-2">
                     {PERMISSIONS.map((perm) => {
@@ -275,7 +273,7 @@ export function AdminRolesTab() {
                           }`}
                         >
                           <span className="min-w-0 flex-1">
-                            <span className="block">{PERMISSION_LABELS[perm]}</span>
+                            <span className="block">{tPerm(permMsgKey(perm))}</span>
                             <span className="mt-0.5 block font-mono text-[10px] text-[var(--rp-muted)]">
                               {perm}
                             </span>

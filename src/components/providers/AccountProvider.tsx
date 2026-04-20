@@ -30,9 +30,10 @@ import type {
   RoleDefinition,
 } from "@/lib/account/types";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import type { AccountErrorKey, AccountResult } from "@/lib/account/account-error-keys";
 
-type Result = { ok: true } | { ok: false; error: string };
-type ResultId = { ok: true; accountId: string } | { ok: false; error: string };
+type Result = AccountResult;
+type ResultId = { ok: true; accountId: string } | { ok: false; error: AccountErrorKey; errorValues?: Record<string, string> };
 
 type OAuthIdentity = {
   provider: OAuthProvider;
@@ -67,6 +68,10 @@ type Ctx = {
   linkOAuth: (identity: OAuthIdentity) => Result;
   unlinkOAuth: (provider: OAuthProvider) => Result;
 };
+
+function err(key: AccountErrorKey, errorValues?: Record<string, string>): Result {
+  return errorValues ? { ok: false, error: key, errorValues } : { ok: false, error: key };
+}
 
 const AccountContext = createContext<Ctx | null>(null);
 
@@ -158,17 +163,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     async (username: string, password: string): Promise<Result> => {
       const u = username.trim();
       if (!USERNAME_RE.test(u)) {
-        return {
-          ok: false,
-          error: "Pseudo : 3 à 24 caractères, lettres, chiffres, _ ou -.",
-        };
+        return err("username_rules");
       }
       if (password.length < 6) {
-        return { ok: false, error: "Mot de passe : 6 caractères minimum." };
+        return err("password_min");
       }
       const lower = u.toLowerCase();
       if (store.accounts.some((a) => a.usernameLower === lower)) {
-        return { ok: false, error: "Ce pseudo est déjà pris." };
+        return err("username_taken");
       }
       const salt = generateSalt();
       const hash = await hashPassword(password, salt);
@@ -198,15 +200,12 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     async (username: string, password: string): Promise<Result> => {
       const lower = username.trim().toLowerCase();
       const acc = store.accounts.find((a) => a.usernameLower === lower);
-      if (!acc) return { ok: false, error: "Pseudo ou mot de passe invalide." };
+      if (!acc) return err("invalid_credentials");
       if (!acc.passwordHash || !acc.passwordSalt) {
-        return {
-          ok: false,
-          error: "Ce compte est lié à un service externe. Utilisez « Continuer avec… ».",
-        };
+        return err("oauth_use_provider");
       }
       const ok = await verifyPassword(password, acc.passwordSalt, acc.passwordHash);
-      if (!ok) return { ok: false, error: "Pseudo ou mot de passe invalide." };
+      if (!ok) return err("invalid_credentials");
       persist({ ...store, currentUserId: acc.id });
       return { ok: true };
     },
@@ -237,7 +236,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = useCallback(
     (patch: Partial<AccountProfile>): Result => {
-      if (!user) return { ok: false, error: "Non connecté." };
+      if (!user) return err("not_signed_in");
       const accounts = store.accounts.map((a) =>
         a.id === user.id ? { ...a, profile: { ...a.profile, ...patch } } : a,
       );
@@ -249,14 +248,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
   const changePassword = useCallback(
     async (current: string, next: string): Promise<Result> => {
-      if (!user) return { ok: false, error: "Non connecté." };
+      if (!user) return err("not_signed_in");
       if (next.length < 6) {
-        return { ok: false, error: "Mot de passe : 6 caractères minimum." };
+        return err("password_min");
       }
       const hasPassword = !!(user.passwordHash && user.passwordSalt);
       if (hasPassword) {
         const ok = await verifyPassword(current, user.passwordSalt!, user.passwordHash!);
-        if (!ok) return { ok: false, error: "Mot de passe actuel incorrect." };
+        if (!ok) return err("wrong_current_password");
       }
       const salt = generateSalt();
       const hash = await hashPassword(next, salt);
@@ -272,13 +271,13 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const setRole = useCallback(
     (userId: string, role: AccountRole): Result => {
       if (!user || !roleHasPermission(roleDef, "admin.manage_users")) {
-        return { ok: false, error: "Réservé aux administrateurs." };
+        return err("admin_only");
       }
       const target = store.accounts.find((a) => a.id === userId);
-      if (!target) return { ok: false, error: "Utilisateur introuvable." };
+      if (!target) return err("user_not_found");
       const targetRoleDef = roleDefOf(role);
       if (!roles.some((r) => r.id === role)) {
-        return { ok: false, error: "Ce rôle n'existe pas (ou plus)." };
+        return err("role_not_found");
       }
       // Empêche de se retirer la dernière permission admin du site.
       const currentRoleHadAdmin = roleHasPermission(roleDefOf(target.role), "admin.access");
@@ -286,10 +285,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       if (currentRoleHadAdmin && !newRoleHasAdmin) {
         const others = countByPermission(store.accounts, "admin.access", target.id);
         if (others === 0) {
-          return {
-            ok: false,
-            error: "Impossible de retirer le dernier compte avec accès admin.",
-          };
+          return err("cannot_demote_last_admin");
         }
       }
       const accounts = store.accounts.map((a) =>
@@ -304,20 +300,17 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const deleteAccount = useCallback(
     (userId: string): Result => {
       const target = store.accounts.find((a) => a.id === userId);
-      if (!target) return { ok: false, error: "Utilisateur introuvable." };
+      if (!target) return err("user_not_found");
       const isSelf = user?.id === userId;
       const canManage = roleHasPermission(roleDef, "admin.manage_users");
       if (!isSelf && !canManage) {
-        return { ok: false, error: "Réservé aux administrateurs." };
+        return err("admin_only");
       }
       const targetHasAdmin = roleHasPermission(roleDefOf(target.role), "admin.access");
       if (targetHasAdmin) {
         const others = countByPermission(store.accounts, "admin.access", target.id);
         if (others === 0) {
-          return {
-            ok: false,
-            error: "Impossible de supprimer le dernier compte avec accès admin.",
-          };
+          return err("cannot_delete_last_admin");
         }
       }
       const accounts = store.accounts.filter((a) => a.id !== userId);
@@ -366,15 +359,15 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
   const linkOAuth = useCallback(
     (identity: OAuthIdentity): Result => {
-      if (!user) return { ok: false, error: "Non connecté." };
+      if (!user) return err("not_signed_in");
       const conflict = store.accounts.find(
         (a) => a.oauth?.[identity.provider]?.id === identity.id && a.id !== user.id,
       );
       if (conflict) {
-        return {
-          ok: false,
-          error: `Ce compte ${identity.provider} est déjà lié à @${conflict.username}.`,
-        };
+        return err("oauth_already_linked", {
+          provider: identity.provider === "discord" ? "Discord" : "Steam",
+          username: conflict.username,
+        });
       }
       const link: AccountOAuthLink = {
         id: identity.id,
@@ -395,14 +388,11 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
   const unlinkOAuth = useCallback(
     (provider: OAuthProvider): Result => {
-      if (!user) return { ok: false, error: "Non connecté." };
+      if (!user) return err("not_signed_in");
       const hasPassword = !!(user.passwordHash && user.passwordSalt);
       const otherProviders = Object.keys(user.oauth ?? {}).filter((p) => p !== provider);
       if (!hasPassword && otherProviders.length === 0) {
-        return {
-          ok: false,
-          error: "Définissez d’abord un mot de passe avant de retirer ce service.",
-        };
+        return err("password_required_before_unlink");
       }
       const accounts = store.accounts.map((a) => {
         if (a.id !== user.id) return a;

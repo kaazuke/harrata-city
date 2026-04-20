@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { SessionUser } from "@/lib/auth/session";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 
@@ -23,6 +23,7 @@ type AuthErrorKey = (typeof KNOWN_AUTH_ERRORS)[number];
 
 export function AuthBar() {
   const { config } = useSiteConfig();
+  const locale = useLocale();
   const sp = useSearchParams();
   const t = useTranslations("auth.bar");
   const tErr = useTranslations("auth.errors");
@@ -56,7 +57,8 @@ export function AuthBar() {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setMe(null);
-    window.location.href = "/";
+    /** Garde la langue active (évite / seul → mauvaise locale). */
+    window.location.href = `/${locale}`;
   }
 
   if (!showDiscord && !showSteam) {

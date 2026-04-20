@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useAccount } from "@/components/providers/AccountProvider";
+import { formatAccountError } from "@/lib/account/format-account-error";
+import type { AccountFailure } from "@/lib/account/account-error-keys";
 import { Card, CardBody } from "@/components/ui/Card";
 import { OAuthButtons } from "@/components/account/OAuthButtons";
 import { PROVIDER_LABELS } from "@/lib/account/types";
@@ -11,6 +14,10 @@ const PROVIDERS: OAuthProvider[] = ["discord", "steam"];
 
 export function LinkedAccountsCard() {
   const { user, unlinkOAuth } = useAccount();
+  const t = useTranslations("authLinked");
+  const te = useTranslations("accountErrors");
+  const locale = useLocale();
+  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   if (!user) return null;
@@ -18,13 +25,8 @@ export function LinkedAccountsCard() {
   return (
     <Card>
       <CardBody>
-        <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">
-          Comptes liés
-        </h2>
-        <p className="mt-1 text-xs text-[var(--rp-muted)]">
-          Connectez Discord ou votre identité FiveM (Steam) pour vous reconnecter sans mot de
-          passe.
-        </p>
+        <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">{t("title")}</h2>
+        <p className="mt-1 text-xs text-[var(--rp-muted)]">{t("subtitle")}</p>
 
         <ul className="mt-4 space-y-2">
           {PROVIDERS.map((p) => {
@@ -35,19 +37,17 @@ export function LinkedAccountsCard() {
                 className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-4 py-3"
               >
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-[var(--rp-fg)]">
-                    {PROVIDER_LABELS[p]}
-                  </div>
+                  <div className="text-sm font-semibold text-[var(--rp-fg)]">{PROVIDER_LABELS[p]}</div>
                   {link ? (
                     <div className="mt-0.5 truncate text-[11px] text-[var(--rp-muted)]">
                       {link.username}
                       <span className="opacity-70">
-                        {" "}
-                        · lié le {new Date(link.linkedAt).toLocaleDateString("fr-FR")}
+                        {t("linkedOn")}
+                        {new Date(link.linkedAt).toLocaleDateString(dateLocale)}
                       </span>
                     </div>
                   ) : (
-                    <div className="mt-0.5 text-[11px] text-[var(--rp-muted)]">Non lié</div>
+                    <div className="mt-0.5 text-[11px] text-[var(--rp-muted)]">{t("notLinked")}</div>
                   )}
                 </div>
                 {link ? (
@@ -58,12 +58,12 @@ export function LinkedAccountsCard() {
                       const r = unlinkOAuth(p);
                       setMsg(
                         r.ok
-                          ? { ok: true, text: `${PROVIDER_LABELS[p]} dissocié.` }
-                          : { ok: false, text: r.error },
+                          ? { ok: true, text: t("unlinked", { provider: PROVIDER_LABELS[p] }) }
+                          : { ok: false, text: formatAccountError(te, r as AccountFailure) },
                       );
                     }}
                   >
-                    Délier
+                    {t("unlink")}
                   </button>
                 ) : null}
               </li>
@@ -82,7 +82,7 @@ export function LinkedAccountsCard() {
         ) : null}
 
         <div className="mt-5">
-          <p className="mb-2 text-xs font-semibold text-[var(--rp-muted)]">Lier un compte</p>
+          <p className="mb-2 text-xs font-semibold text-[var(--rp-muted)]">{t("linkHeading")}</p>
           <OAuthButtons intent="link" />
         </div>
       </CardBody>

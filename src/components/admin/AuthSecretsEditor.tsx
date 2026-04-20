@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -23,14 +24,9 @@ type Status = {
   writeAllowed: boolean;
 };
 
-const sourceLabel: Record<string, string> = {
-  none: "Non configuré",
-  env: "Variables d’environnement (.env)",
-  runtime: "Saisi via le panneau admin",
-  mixed: "Mixte (.env + panneau)",
-};
-
 export function AuthSecretsEditor() {
+  const t = useTranslations("admin.authSecrets");
+  const locale = useLocale();
   const [status, setStatus] = useState<Status | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -106,7 +102,7 @@ export function AuthSecretsEditor() {
         error?: string;
       };
       if (!r.ok || !data.ok) {
-        setMsg({ ok: false, text: data.error ?? "Erreur lors de l’enregistrement." });
+        setMsg({ ok: false, text: data.error ?? t("errSave") });
         return;
       }
       if (data.ownerToken) {
@@ -121,16 +117,16 @@ export function AuthSecretsEditor() {
       if (data.status) setStatus(data.status);
       setAuthSecret("");
       setClientSecret("");
-      setMsg({ ok: true, text: "Configuration enregistrée côté serveur." });
+      setMsg({ ok: true, text: t("okSave") });
     } catch {
-      setMsg({ ok: false, text: "Erreur réseau." });
+      setMsg({ ok: false, text: t("errNetwork") });
     } finally {
       setBusy(false);
     }
   }
 
   async function reset() {
-    if (!confirm("Effacer la configuration runtime (clés saisies depuis le panneau) ?")) return;
+    if (!confirm(t("confirmReset"))) return;
     setBusy(true);
     setMsg(null);
     try {
@@ -140,7 +136,7 @@ export function AuthSecretsEditor() {
       });
       const data = (await r.json()) as { ok?: boolean; error?: string; status?: Status };
       if (!r.ok || !data.ok) {
-        setMsg({ ok: false, text: data.error ?? "Erreur." });
+        setMsg({ ok: false, text: data.error ?? t("errGeneric") });
         return;
       }
       try {
@@ -151,9 +147,9 @@ export function AuthSecretsEditor() {
       setToken("");
       setRevealedToken(null);
       if (data.status) setStatus(data.status);
-      setMsg({ ok: true, text: "Configuration réinitialisée." });
+      setMsg({ ok: true, text: t("okReset") });
     } catch {
-      setMsg({ ok: false, text: "Erreur réseau." });
+      setMsg({ ok: false, text: t("errNetwork") });
     } finally {
       setBusy(false);
     }
@@ -162,7 +158,7 @@ export function AuthSecretsEditor() {
   if (loading) {
     return (
       <p className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-4 py-3 text-sm text-[var(--rp-muted)]">
-        Chargement de la configuration serveur…
+        {t("loading")}
       </p>
     );
   }
@@ -170,7 +166,9 @@ export function AuthSecretsEditor() {
   if (!status) {
     return (
       <p className="rounded-[var(--rp-radius)] border border-[color-mix(in_oklab,var(--rp-danger)_45%,var(--rp-border))] bg-[color-mix(in_oklab,var(--rp-danger)_10%,transparent)] px-4 py-3 text-sm">
-        Impossible de joindre l’API <span className="font-mono">/api/admin/auth-config</span>.
+        {t("apiErrorBefore")}
+        <span className="font-mono">/api/admin/auth-config</span>
+        {t("apiErrorAfter")}
       </p>
     );
   }
@@ -180,7 +178,7 @@ export function AuthSecretsEditor() {
       <div className="grid gap-3 sm:grid-cols-3">
         <StatusBlock
           label="AUTH_SECRET"
-          value={status.hasAuthSecret ? "Configuré" : "Manquant"}
+          value={status.hasAuthSecret ? t("status.configured") : t("status.missing")}
           source={status.authSecretSource}
           ok={status.hasAuthSecret}
         />
@@ -188,17 +186,17 @@ export function AuthSecretsEditor() {
           label="Discord"
           value={
             status.discord.clientId && status.discord.hasClientSecret
-              ? "Configuré"
+              ? t("status.configured")
               : status.discord.clientId
-                ? "Client ID seul"
-                : "Manquant"
+                ? t("status.clientIdOnly")
+                : t("status.missing")
           }
           source={status.discord.source}
           ok={!!status.discord.clientId && status.discord.hasClientSecret}
         />
         <StatusBlock
           label="Steam (FiveM)"
-          value="Aucune clé requise (OpenID public)"
+          value={t("status.steamNoKey")}
           source={status.steam.realm ? "runtime" : "none"}
           ok
           alwaysOk
@@ -207,25 +205,28 @@ export function AuthSecretsEditor() {
 
       {!status.writeAllowed ? (
         <p className="rounded-[var(--rp-radius)] border border-[color-mix(in_oklab,#f5b042_45%,var(--rp-border))] bg-[color-mix(in_oklab,#f5b042_10%,transparent)] px-4 py-3 text-xs text-[var(--rp-fg)]">
-          La modification est désactivée en production. Définissez{" "}
-          <span className="font-mono">ALLOW_RUNTIME_AUTH_CONFIG=true</span> côté serveur, ou utilisez{" "}
-          <span className="font-mono">.env</span> directement.
+          {t.rich("writeDisabled", {
+            monoAllow: (chunks) => <span className="font-mono">{chunks}</span>,
+            monoEnv: (chunks) => <span className="font-mono">{chunks}</span>,
+          })}
         </p>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="AUTH_SECRET" hint="Chaîne aléatoire (≥ 32 caractères). Sert à signer les sessions.">
+        <Field label={t("fieldAuthSecret")} hint={t("hintAuthSecret")}>
           <Input
             type="password"
             value={authSecret}
             onChange={(e) => setAuthSecret(e.target.value)}
-            placeholder={status.hasAuthSecret ? "(actuel masqué — laissez vide pour conserver)" : "ex. 64 caractères aléatoires"}
+            placeholder={
+              status.hasAuthSecret ? t("placeholderAuthSecretMasked") : t("placeholderAuthSecretNew")
+            }
             autoComplete="off"
           />
         </Field>
         <div />
 
-        <Field label="Discord — Client ID">
+        <Field label={t("fieldDiscordClientId")}>
           <Input
             value={clientId}
             onChange={(e) => setClientId(e.target.value)}
@@ -233,19 +234,20 @@ export function AuthSecretsEditor() {
             autoComplete="off"
           />
         </Field>
-        <Field label="Discord — Client Secret" hint="Stocké dans .runtime/auth-config.json (hors git).">
+        <Field label={t("fieldDiscordSecret")} hint={t("hintDiscordSecret")}>
           <Input
             type="password"
             value={clientSecret}
             onChange={(e) => setClientSecret(e.target.value)}
-            placeholder={status.discord.hasClientSecret ? "(actuel masqué — laissez vide pour conserver)" : "secret Discord"}
+            placeholder={
+              status.discord.hasClientSecret
+                ? t("placeholderDiscordSecretMasked")
+                : t("placeholderDiscordSecretNew")
+            }
             autoComplete="off"
           />
         </Field>
-        <Field
-          label="Discord — Redirect URI"
-          hint="À déclarer à l’identique dans Discord Developer Portal."
-        >
+        <Field label={t("fieldDiscordRedirect")} hint={t("hintDiscordRedirect")}>
           <div className="flex gap-2">
             <Input
               value={redirectUri}
@@ -258,18 +260,17 @@ export function AuthSecretsEditor() {
               onClick={() => setRedirectUri(suggestedRedirect)}
               disabled={!suggestedRedirect}
             >
-              Auto
+              {t("btnAuto")}
             </Button>
           </div>
         </Field>
-        <Field
-          label="Steam — Realm (optionnel)"
-          hint="Origine HTTPS de votre site (sinon dérivée automatiquement)."
-        >
+        <Field label={t("fieldSteamRealm")} hint={t("hintSteamRealm")}>
           <Input
             value={realm}
             onChange={(e) => setRealm(e.target.value)}
-            placeholder={typeof window !== "undefined" ? window.location.origin : "https://votre-site.fr"}
+            placeholder={
+              typeof window !== "undefined" ? window.location.origin : t("placeholderSteamRealm")
+            }
           />
         </Field>
       </div>
@@ -284,11 +285,8 @@ export function AuthSecretsEditor() {
 
       {revealedToken ? (
         <div className="rounded-[var(--rp-radius)] border border-[color-mix(in_oklab,var(--rp-primary)_45%,var(--rp-border))] bg-[color-mix(in_oklab,var(--rp-primary)_10%,transparent)] px-4 py-3 text-xs">
-          <div className="font-semibold text-[var(--rp-fg)]">Token admin runtime généré</div>
-          <p className="mt-1 text-[var(--rp-muted)]">
-            Conservez-le pour pouvoir modifier la config plus tard depuis un autre navigateur. Il a
-            été enregistré localement.
-          </p>
+          <div className="font-semibold text-[var(--rp-fg)]">{t("tokenGeneratedTitle")}</div>
+          <p className="mt-1 text-[var(--rp-muted)]">{t("tokenGeneratedBody")}</p>
           <code className="mt-2 block break-all rounded bg-black/40 px-2 py-1 font-mono text-[11px] text-[var(--rp-fg)]">
             {revealedToken}
           </code>
@@ -296,14 +294,11 @@ export function AuthSecretsEditor() {
       ) : null}
 
       {status.hasOwnerToken && !revealedToken && !token ? (
-        <Field
-          label="Token admin (requis pour modifier)"
-          hint="Collez le token retourné lors de la première écriture."
-        >
+        <Field label={t("fieldAdminToken")} hint={t("hintAdminToken")}>
           <Input
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            placeholder="ex. 5e8a…"
+            placeholder={t("placeholderAdminToken")}
             autoComplete="off"
           />
         </Field>
@@ -311,143 +306,109 @@ export function AuthSecretsEditor() {
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" onClick={save} disabled={busy || !status.writeAllowed}>
-          {busy ? "Enregistrement…" : "Enregistrer côté serveur"}
+          {busy ? t("btnSaving") : t("btnSave")}
         </Button>
         <Button type="button" variant="outline" onClick={refresh} disabled={busy}>
-          Recharger
+          {t("btnRefresh")}
         </Button>
         {status.hasOwnerToken ? (
           <Button type="button" variant="ghost" onClick={reset} disabled={busy}>
-            Réinitialiser
+            {t("btnReset")}
           </Button>
         ) : null}
       </div>
 
       <p className="text-[11px] leading-relaxed text-[var(--rp-muted)]">
-        Stockage : <span className="font-mono">.runtime/auth-config.json</span> (gitignoré).
-        L’écriture nécessite un token généré à la première sauvegarde et stocké dans votre navigateur
-        ({" "}
-        <span className="font-mono">localStorage</span>). Les routes Discord/Steam liront ces clés
-        en priorité, puis tomberont sur les variables d’environnement classiques.
+        {t("footerStorage")}{" "}
+        <span className="font-mono">.runtime/auth-config.json</span> {t("footerGitNote")}{" "}
+        {t("footerWrite")}
+        <span className="font-mono">localStorage</span>
+        {t("footerWriteAfter")}
         {status.updatedAt
-          ? ` Dernière mise à jour : ${new Date(status.updatedAt).toLocaleString("fr-FR")}.`
+          ? t("footerUpdated", {
+              date: new Date(status.updatedAt).toLocaleString(
+                locale === "en" ? "en-US" : "fr-FR",
+                { dateStyle: "short", timeStyle: "short" },
+              ),
+            })
           : ""}
       </p>
 
-      <HelpLinks redirectUri={redirectUri || suggestedRedirect} />
+      <HelpLinks redirectUri={redirectUri || suggestedRedirect} suggestedFallback={t("fallbackRedirectExample")} />
     </div>
   );
 }
 
-function HelpLinks({ redirectUri }: { redirectUri: string }) {
+function HelpLinks({
+  redirectUri,
+  suggestedFallback,
+}: {
+  redirectUri: string;
+  suggestedFallback: string;
+}) {
+  const t = useTranslations("admin.authSecrets");
+  const discordSteps = t.raw("help.discord.steps") as string[];
+  const steamSteps = t.raw("help.steam.steps") as string[];
+  const authSecretSteps = t.raw("help.authSecret.steps") as string[];
+  const tebexSteps = t.raw("help.tebex.steps") as string[];
+
   return (
     <div className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 p-4">
-      <h4 className="text-sm font-semibold text-[var(--rp-fg)]">
-        Où récupérer ces identifiants ?
-      </h4>
-      <p className="mt-1 text-[11px] text-[var(--rp-muted)]">
-        Liens utiles pour créer/retrouver vos clés. Tout se fait gratuitement.
-      </p>
+      <h4 className="text-sm font-semibold text-[var(--rp-fg)]">{t("help.whereTitle")}</h4>
+      <p className="mt-1 text-[11px] text-[var(--rp-muted)]">{t("help.intro")}</p>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <HelpCard
-          title="Discord — Application OAuth2"
+          title={t("help.discord.title")}
           steps={[
-            <>Ouvrir le <ExtLink href="https://discord.com/developers/applications">Discord Developer Portal</ExtLink>.</>,
-            <>Cliquer <em>New Application</em>, donner un nom (votre serveur RP).</>,
-            <>Onglet <em>OAuth2 → General</em> : copier <span className="font-mono">CLIENT ID</span> et <span className="font-mono">CLIENT SECRET</span> (bouton <em>Reset Secret</em>).</>,
+            ...discordSteps.map((text, i) => <span key={`d-${i}`}>{text}</span>),
             <>
-              Toujours dans <em>OAuth2</em>, section <em>Redirects</em>, ajouter exactement :{" "}
+              {t("help.discord.redirectIntro")}{" "}
               <code className="break-all rounded bg-black/40 px-1.5 py-0.5 font-mono text-[11px]">
-                {redirectUri || "https://votre-site.fr/api/auth/discord/callback"}
+                {redirectUri || suggestedFallback}
               </code>
             </>,
           ]}
           links={[
-            { label: "Developer Portal", href: "https://discord.com/developers/applications" },
+            { label: t("help.links.discordPortal"), href: "https://discord.com/developers/applications" },
             {
-              label: "Doc OAuth2 Discord",
+              label: t("help.links.discordOAuthDoc"),
               href: "https://discord.com/developers/docs/topics/oauth2",
             },
           ]}
         />
 
         <HelpCard
-          title="Steam (FiveM) — OpenID 2.0"
-          steps={[
-            <>
-              <strong>Aucune clé requise</strong> : Steam OpenID est public. Le SteamID renvoyé
-              permet d’identifier les joueurs FiveM (qui se lancent via Steam).
-            </>,
-            <>
-              Optionnel : pour une <em>API Key</em> Steam (récupérer le pseudo / l’avatar du
-              profil), créez‑la sur{" "}
-              <ExtLink href="https://steamcommunity.com/dev/apikey">
-                steamcommunity.com/dev/apikey
-              </ExtLink>{" "}
-              (un domaine est demandé).
-            </>,
-            <>
-              Le champ <em>Realm</em> est laissé vide la plupart du temps : il sera dérivé
-              automatiquement de l’URL publique du site.
-            </>,
-          ]}
+          title={t("help.steam.title")}
+          steps={steamSteps.map((text, i) => (
+            <span key={`s-${i}`}>{text}</span>
+          ))}
           links={[
-            { label: "Steam API Key", href: "https://steamcommunity.com/dev/apikey" },
-            { label: "Doc OpenID Steam", href: "https://steamcommunity.com/dev" },
+            { label: t("help.links.steamApiKey"), href: "https://steamcommunity.com/dev/apikey" },
+            { label: t("help.links.steamDev"), href: "https://steamcommunity.com/dev" },
             {
-              label: "Convertisseur SteamID ↔ FiveM",
+              label: t("help.links.steamIdConverter"),
               href: "https://steamid.io/",
             },
           ]}
         />
 
         <HelpCard
-          title="AUTH_SECRET — clé de signature des sessions"
-          steps={[
-            <>
-              Générez une chaîne aléatoire de <strong>64 caractères</strong>. Plusieurs options :
-            </>,
-            <>
-              En ligne :{" "}
-              <ExtLink href="https://generate-secret.vercel.app/64">
-                generate-secret.vercel.app/64
-              </ExtLink>{" "}
-              ou <ExtLink href="https://www.random.org/strings/">random.org</ExtLink>.
-            </>,
-            <>
-              En local : <span className="font-mono">openssl rand -hex 32</span> ou{" "}
-              <span className="font-mono">node -e &quot;console.log(require(&apos;crypto&apos;).randomBytes(32).toString(&apos;hex&apos;))&quot;</span>.
-            </>,
-            <>
-              Ne la partagez jamais ; si elle fuite, régénérez‑la (toutes les sessions seront
-              invalidées).
-            </>,
-          ]}
-          links={[
-            { label: "Générateur 64 chars", href: "https://generate-secret.vercel.app/64" },
-          ]}
+          title={t("help.authSecret.title")}
+          steps={authSecretSteps.map((text, i) => (
+            <span key={`a-${i}`}>{text}</span>
+          ))}
+          links={[{ label: t("help.links.gen64"), href: "https://generate-secret.vercel.app/64" }]}
         />
 
         <HelpCard
-          title="Tebex — boutique"
-          steps={[
-            <>
-              L’URL de base est celle affichée dans votre back‑office Tebex (ex.{" "}
-              <span className="font-mono">https://votre-boutique.tebex.io</span>).
-            </>,
-            <>
-              Pour récupérer/configurer votre store :{" "}
-              <ExtLink href="https://creator.tebex.io/">creator.tebex.io</ExtLink>.
-            </>,
-            <>
-              Doc API & webhooks :{" "}
-              <ExtLink href="https://docs.tebex.io/">docs.tebex.io</ExtLink>.
-            </>,
-          ]}
+          title={t("help.tebex.title")}
+          steps={tebexSteps.map((text, i) => (
+            <span key={`x-${i}`}>{text}</span>
+          ))}
           links={[
-            { label: "Tebex Creator", href: "https://creator.tebex.io/" },
-            { label: "Documentation", href: "https://docs.tebex.io/" },
+            { label: t("help.links.tebexCreator"), href: "https://creator.tebex.io/" },
+            { label: t("help.links.tebexDocs"), href: "https://docs.tebex.io/" },
           ]}
         />
       </div>
@@ -550,7 +511,15 @@ function StatusBlock({
   ok: boolean;
   alwaysOk?: boolean;
 }) {
+  const t = useTranslations("admin.authSecrets");
   const dotColor = alwaysOk || ok ? "var(--rp-success)" : "var(--rp-danger)";
+  const sourceLabels: Record<string, string> = {
+    none: t("source.none"),
+    env: t("source.env"),
+    runtime: t("source.runtime"),
+    mixed: t("source.mixed"),
+  };
+  const sourceLabel = sourceLabels[source] ?? source;
   return (
     <div className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-3 py-2.5">
       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
@@ -562,7 +531,7 @@ function StatusBlock({
         {label}
       </div>
       <div className="mt-1 text-sm font-semibold text-[var(--rp-fg)]">{value}</div>
-      <div className="mt-0.5 text-[11px] text-[var(--rp-muted)]">{sourceLabel[source] ?? source}</div>
+      <div className="mt-0.5 text-[11px] text-[var(--rp-muted)]">{sourceLabel}</div>
     </div>
   );
 }

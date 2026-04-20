@@ -20,6 +20,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     if (next === locale) return;
     startTransition(() => {
       router.replace(pathname, { locale: next });
+      router.refresh();
     });
   };
 

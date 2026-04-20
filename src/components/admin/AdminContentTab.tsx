@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -29,42 +30,41 @@ type Section =
   | "faq"
   | "contact";
 
-const SECTIONS: { id: Section; label: string; hint: string }[] = [
-  { id: "presentation", label: "Présentation", hint: "Tuiles, lore, points forts, économie" },
-  { id: "stats", label: "Statistiques", hint: "Cartes & barres" },
-  { id: "staff", label: "Équipe", hint: "Membres de l’équipe (page Équipe)" },
-  { id: "rules", label: "Règlement", hint: "Catégories de règles" },
-  { id: "articles", label: "Actualités", hint: "Articles / patch notes" },
-  { id: "boutique", label: "Boutique", hint: "Produits Tebex" },
-  { id: "gallery", label: "Galerie", hint: "Screenshots, vidéos, clips" },
-  { id: "faq", label: "FAQ", hint: "Questions fréquentes" },
-  { id: "contact", label: "Contact", hint: "Email & salon Discord support" },
+const SECTION_IDS: Section[] = [
+  "presentation",
+  "stats",
+  "staff",
+  "rules",
+  "articles",
+  "boutique",
+  "gallery",
+  "faq",
+  "contact",
 ];
 
 export function AdminContentTab() {
   const [section, setSection] = useState<Section>("presentation");
+  const t = useTranslations("admin.content");
+
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader
-          title="Contenus du site"
-          subtitle="Édite ici tout ce qui apparaît sur les pages publiques (Présentation, Équipe, Règlement, Actualités, Boutique, Galerie, FAQ, Stats, Contact)."
-        />
+        <CardHeader title={t("rootTitle")} subtitle={t("rootSubtitle")} />
         <CardBody>
           <div className="flex flex-wrap gap-2">
-            {SECTIONS.map((s) => (
+            {SECTION_IDS.map((id) => (
               <button
-                key={s.id}
+                key={id}
                 type="button"
-                onClick={() => setSection(s.id)}
+                onClick={() => setSection(id)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                  section === s.id
+                  section === id
                     ? "border-[color-mix(in_oklab,var(--rp-primary)_55%,var(--rp-border))] bg-white/10 text-[var(--rp-fg)]"
                     : "border-[var(--rp-border)] text-[var(--rp-muted)] hover:bg-white/5"
                 }`}
-                title={s.hint}
+                title={t(`sections.${id}.hint` as "sections.presentation.hint")}
               >
-                {s.label}
+                {t(`sections.${id}.label` as "sections.presentation.label")}
               </button>
             ))}
           </div>
@@ -124,6 +124,7 @@ function ItemControls({
   onDown: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("admin.content");
   return (
     <div className="flex shrink-0 items-center gap-1">
       <button
@@ -131,8 +132,8 @@ function ItemControls({
         onClick={onUp}
         disabled={index === 0}
         className="rounded border border-[var(--rp-border)] px-2 py-1 text-xs leading-none disabled:opacity-30"
-        aria-label="Monter"
-        title="Monter"
+        aria-label={t("moveUp")}
+        title={t("moveUp")}
       >
         ↑
       </button>
@@ -141,8 +142,8 @@ function ItemControls({
         onClick={onDown}
         disabled={index === total - 1}
         className="rounded border border-[var(--rp-border)] px-2 py-1 text-xs leading-none disabled:opacity-30"
-        aria-label="Descendre"
-        title="Descendre"
+        aria-label={t("moveDown")}
+        title={t("moveDown")}
       >
         ↓
       </button>
@@ -152,7 +153,7 @@ function ItemControls({
         onClick={onDelete}
         className="px-2 py-1 text-[var(--rp-danger)]"
       >
-        Suppr.
+        {t("deleteShort")}
       </Button>
     </div>
   );
@@ -171,6 +172,8 @@ const FEATURE_ICONS: FeatureTile["icon"][] = [
 
 function PresentationEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const features = config.features ?? [];
   const lore = config.lore ?? [];
   const strengths = config.strengths ?? [];
@@ -189,8 +192,8 @@ function PresentationEditor() {
     <div className="space-y-4">
       <Card>
         <CardHeader
-          title="Tuiles « Pourquoi nous rejoindre »"
-          subtitle="Affichées sur l’accueil et la page Présentation."
+          title={t("presentation.featuresTitle")}
+          subtitle={t("presentation.featuresSubtitle")}
           actions={
             <Button
               onClick={() =>
@@ -198,20 +201,20 @@ function PresentationEditor() {
                   ...features,
                   {
                     id: newId("f"),
-                    title: "Nouvelle tuile",
-                    description: "Décris ici une force du serveur.",
+                    title: tc("featureNewTitle"),
+                    description: tc("featureNewDesc"),
                     icon: "spark",
                   },
                 ])
               }
             >
-              + Ajouter
+              {tc("btnAdd")}
             </Button>
           }
         />
         <CardBody className="space-y-2">
           {features.length === 0 ? (
-            <p className="text-sm text-[var(--rp-muted)]">Aucune tuile.</p>
+            <p className="text-sm text-[var(--rp-muted)]">{tc("noTiles")}</p>
           ) : (
             features.map((f, i) => (
               <Row key={f.id}>
@@ -224,7 +227,7 @@ function PresentationEditor() {
                           features.map((x) => (x.id === f.id ? { ...x, title: e.target.value } : x)),
                         )
                       }
-                      placeholder="Titre"
+                      placeholder={tc("phLabel")}
                     />
                     <select
                       className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
@@ -255,7 +258,7 @@ function PresentationEditor() {
                           ),
                         )
                       }
-                      placeholder="Description"
+                      placeholder={tc("phDescription")}
                     />
                   </div>
                   <ItemControls
@@ -274,24 +277,24 @@ function PresentationEditor() {
 
       <Card>
         <CardHeader
-          title="Lore / Histoire"
-          subtitle="Sections narratives affichées sur la page Présentation."
+          title={t("presentation.loreTitle")}
+          subtitle={t("presentation.loreSubtitle")}
           actions={
             <Button
               onClick={() =>
                 setLore([
                   ...lore,
-                  { title: "Nouveau chapitre", body: "Décris ici un pan de l’univers." },
+                  { title: tc("loreNewTitle"), body: tc("loreNewBody") },
                 ])
               }
             >
-              + Ajouter
+              {tc("btnAdd")}
             </Button>
           }
         />
         <CardBody className="space-y-2">
           {lore.length === 0 ? (
-            <p className="text-sm text-[var(--rp-muted)]">Aucun chapitre de lore.</p>
+            <p className="text-sm text-[var(--rp-muted)]">{tc("noLore")}</p>
           ) : (
             lore.map((l, i) => (
               <Row key={`lore-${i}`}>
@@ -302,14 +305,14 @@ function PresentationEditor() {
                       onChange={(e) =>
                         setLore(lore.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))
                       }
-                      placeholder="Titre du chapitre"
+                      placeholder={tc("loreChapterTitlePh")}
                     />
                     <Textarea
                       value={l.body}
                       onChange={(e) =>
                         setLore(lore.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))
                       }
-                      placeholder="Texte du chapitre"
+                      placeholder={tc("loreChapterBodyPh")}
                     />
                   </div>
                   <ItemControls
@@ -328,17 +331,17 @@ function PresentationEditor() {
 
       <Card>
         <CardHeader
-          title="Points forts"
-          subtitle="Une ligne par point fort (puces sur la page Présentation)."
+          title={t("presentation.strengthsTitle")}
+          subtitle={t("presentation.strengthsSubtitle")}
           actions={
-            <Button onClick={() => setStrengths([...strengths, "Nouveau point fort"])}>
-              + Ajouter
+            <Button onClick={() => setStrengths([...strengths, tc("strengthNew")])}>
+              {tc("btnAdd")}
             </Button>
           }
         />
         <CardBody className="space-y-2">
           {strengths.length === 0 ? (
-            <p className="text-sm text-[var(--rp-muted)]">Aucun point fort.</p>
+            <p className="text-sm text-[var(--rp-muted)]">{tc("noStrengths")}</p>
           ) : (
             strengths.map((s, i) => (
               <div key={`str-${i}`} className="flex items-center gap-2">
@@ -363,12 +366,12 @@ function PresentationEditor() {
       </Card>
 
       <Card>
-        <CardHeader title="Texte économie" subtitle="Court paragraphe sur l’économie du serveur." />
+        <CardHeader title={t("presentation.economyTitle")} subtitle={t("presentation.economySubtitle")} />
         <CardBody>
           <Textarea
             value={config.economyBlurb ?? ""}
             onChange={(e) => setConfig({ ...config, economyBlurb: e.target.value })}
-            placeholder="Décris l’économie en quelques phrases."
+            placeholder={tc("economyPlaceholder")}
           />
         </CardBody>
       </Card>
@@ -380,14 +383,16 @@ function PresentationEditor() {
 
 /* ─────────────── Médias de la page Présentation ─────────────── */
 
-const MEDIA_TYPE_HELP: Record<PresentationMedia["type"], string> = {
-  image: "URL d’une image (jpg, png, webp, gif).",
-  video: "URL d’un fichier vidéo (mp4, webm). Lecteur natif `<video controls>`.",
-  youtube: "URL YouTube complète OU identifiant 11 caractères (ex. dQw4w9WgXcQ).",
-};
+function mediaTypeHelp(tc: (k: string) => string, type: PresentationMedia["type"]): string {
+  if (type === "image") return tc("mediaHelpImage");
+  if (type === "video") return tc("mediaHelpVideo");
+  return tc("mediaHelpYoutube");
+}
 
 function PresentationMediaEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const media = config.presentationMedia ?? [];
 
   function setMedia(next: PresentationMedia[]) {
@@ -400,13 +405,15 @@ function PresentationMediaEditor() {
       video: "",
       youtube: "",
     };
+    const title =
+      type === "youtube" || type === "video" ? tc("mediaNewVideoTitle") : tc("mediaNewTitle");
     setMedia([
       ...media,
       {
         id: newId("pm"),
         type,
         src: sample[type],
-        title: type === "youtube" ? "Nouvelle vidéo" : type === "video" ? "Nouvelle vidéo" : "Nouveau média",
+        title,
         caption: "",
       },
     ]);
@@ -419,25 +426,23 @@ function PresentationMediaEditor() {
   return (
     <Card>
       <CardHeader
-        title="Médias — page Présentation"
-        subtitle="Affichés dans la section « Médias » de la page Présentation. Mélangez images, vidéos locales et vidéos YouTube."
+        title={t("presentation.mediaTitle")}
+        subtitle={t("presentation.mediaSubtitle")}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => add("image")}>+ Image</Button>
+            <Button onClick={() => add("image")}>{tc("mediaAddImage")}</Button>
             <Button variant="outline" onClick={() => add("video")}>
-              + Vidéo
+              {tc("mediaAddVideo")}
             </Button>
             <Button variant="outline" onClick={() => add("youtube")}>
-              + YouTube
+              {tc("mediaAddYoutube")}
             </Button>
           </div>
         }
       />
       <CardBody className="space-y-3">
         {media.length === 0 ? (
-          <p className="text-sm text-[var(--rp-muted)]">
-            Aucun média. Utilise les boutons ci-dessus pour en ajouter.
-          </p>
+          <p className="text-sm text-[var(--rp-muted)]">{tc("mediaEmpty")}</p>
         ) : (
           media.map((m, i) => (
             <Row key={m.id}>
@@ -445,7 +450,7 @@ function PresentationMediaEditor() {
                 <MediaPreview item={m} />
                 <div className="grid flex-1 gap-2 md:grid-cols-12">
                   <div className="md:col-span-3">
-                    <FieldLabel>Type</FieldLabel>
+                    <FieldLabel>{tc("mediaType")}</FieldLabel>
                     <select
                       className="mt-1 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
                       value={m.type}
@@ -453,23 +458,24 @@ function PresentationMediaEditor() {
                         patch(m.id, { type: e.target.value as PresentationMedia["type"] })
                       }
                     >
-                      <option value="image">Image</option>
-                      <option value="video">Vidéo (fichier)</option>
-                      <option value="youtube">YouTube</option>
+                      <option value="image">{tc("mediaOptImage")}</option>
+                      <option value="video">{tc("mediaOptVideoFile")}</option>
+                      <option value="youtube">{tc("mediaOptYoutube")}</option>
                     </select>
                   </div>
                   <div className="md:col-span-9">
-                    <FieldLabel>Titre (optionnel)</FieldLabel>
+                    <FieldLabel>{tc("mediaTitleOptional")}</FieldLabel>
                     <Input
                       className="mt-1"
                       value={m.title ?? ""}
                       onChange={(e) => patch(m.id, { title: e.target.value })}
-                      placeholder="Titre court"
+                      placeholder={tc("mediaShortTitle")}
                     />
                   </div>
                   <div className="md:col-span-12">
                     <FieldLabel>
-                      Source — <span className="text-[var(--rp-muted)]">{MEDIA_TYPE_HELP[m.type]}</span>
+                      {tc("mediaSource")} —{" "}
+                      <span className="text-[var(--rp-muted)]">{mediaTypeHelp(tc, m.type)}</span>
                     </FieldLabel>
                     <Input
                       className="mt-1"
@@ -477,33 +483,33 @@ function PresentationMediaEditor() {
                       onChange={(e) => patch(m.id, { src: e.target.value })}
                       placeholder={
                         m.type === "youtube"
-                          ? "https://www.youtube.com/watch?v=… ou dQw4w9WgXcQ"
+                          ? tc("mediaPhYoutube")
                           : m.type === "video"
-                            ? "https://exemple.com/clip.mp4"
-                            : "https://exemple.com/image.jpg"
+                            ? tc("mediaPhVideo")
+                            : tc("mediaPhImage")
                       }
                     />
                   </div>
                   {m.type === "video" ? (
                     <div className="md:col-span-12">
-                      <FieldLabel>Image de prévisualisation (poster, optionnel)</FieldLabel>
+                      <FieldLabel>{tc("mediaPoster")}</FieldLabel>
                       <Input
                         className="mt-1"
                         value={m.poster ?? ""}
                         onChange={(e) =>
                           patch(m.id, { poster: e.target.value || undefined })
                         }
-                        placeholder="URL d’une image affichée avant lecture"
+                        placeholder={tc("mediaPosterPh")}
                       />
                     </div>
                   ) : null}
                   <div className="md:col-span-12">
-                    <FieldLabel>Légende (optionnelle)</FieldLabel>
+                    <FieldLabel>{tc("mediaCaption")}</FieldLabel>
                     <Textarea
                       className="mt-1 min-h-[50px]"
                       value={m.caption ?? ""}
                       onChange={(e) => patch(m.id, { caption: e.target.value })}
-                      placeholder="Texte court sous le média"
+                      placeholder={tc("mediaCaptionPh")}
                     />
                   </div>
                 </div>
@@ -524,6 +530,7 @@ function PresentationMediaEditor() {
 }
 
 function MediaPreview({ item }: { item: PresentationMedia }) {
+  const tc = useTranslations("admin.content.chrome");
   const wrapper =
     "relative h-24 w-40 shrink-0 overflow-hidden rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/40";
   if (item.type === "youtube") {
@@ -532,7 +539,7 @@ function MediaPreview({ item }: { item: PresentationMedia }) {
       return (
         <div className={wrapper}>
           <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--rp-muted)]">
-            ID invalide
+            {tc("invalidYoutubeId")}
           </div>
         </div>
       );
@@ -556,7 +563,7 @@ function MediaPreview({ item }: { item: PresentationMedia }) {
           <img src={item.poster} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--rp-muted)]">
-            Vidéo
+            {tc("previewVideo")}
           </div>
         )}
       </div>
@@ -570,7 +577,7 @@ function MediaPreview({ item }: { item: PresentationMedia }) {
         <img src={item.src} alt="" className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--rp-muted)]">
-          Image
+          {tc("previewImage")}
         </div>
       )}
     </div>
@@ -600,6 +607,8 @@ function ytId(input: string): string | null {
 
 function StatsEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const cards = config.statCards ?? [];
   const series = config.statSeries ?? [];
 
@@ -614,24 +623,24 @@ function StatsEditor() {
     <div className="space-y-4">
       <Card>
         <CardHeader
-          title="Cartes statistiques"
-          subtitle="Affichées sur l’accueil (aperçu) et la page Statistiques."
+          title={t("stats.cardsTitle")}
+          subtitle={t("stats.cardsSubtitle")}
           actions={
             <Button
               onClick={() =>
                 setCards([
                   ...cards,
-                  { id: newId("s"), label: "Nouvelle stat", value: "0", hint: "" },
+                  { id: newId("s"), label: tc("statNewLabel"), value: "0", hint: "" },
                 ])
               }
             >
-              + Ajouter
+              {tc("btnAdd")}
             </Button>
           }
         />
         <CardBody className="space-y-2">
           {cards.length === 0 ? (
-            <p className="text-sm text-[var(--rp-muted)]">Aucune carte.</p>
+            <p className="text-sm text-[var(--rp-muted)]">{tc("noStatCards")}</p>
           ) : (
             cards.map((c, i) => (
               <Row key={c.id}>
@@ -642,14 +651,14 @@ function StatsEditor() {
                       onChange={(e) =>
                         setCards(cards.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)))
                       }
-                      placeholder="Label"
+                      placeholder={tc("phLabel")}
                     />
                     <Input
                       value={c.value}
                       onChange={(e) =>
                         setCards(cards.map((x) => (x.id === c.id ? { ...x, value: e.target.value } : x)))
                       }
-                      placeholder="Valeur (ex. 256, 99%)"
+                      placeholder={tc("phValue")}
                     />
                     <Input
                       value={c.trend ?? ""}
@@ -660,7 +669,7 @@ function StatsEditor() {
                           ),
                         )
                       }
-                      placeholder="Tendance (ex. +12%)"
+                      placeholder={tc("phTrend")}
                     />
                     <Input
                       value={c.hint ?? ""}
@@ -671,7 +680,7 @@ function StatsEditor() {
                           ),
                         )
                       }
-                      placeholder="Info (optionnel)"
+                      placeholder={tc("phHintOptional")}
                     />
                   </div>
                   <ItemControls
@@ -690,17 +699,17 @@ function StatsEditor() {
 
       <Card>
         <CardHeader
-          title="Série statistique (barres)"
-          subtitle="Données utilisées pour le graphique sur la page Statistiques."
+          title={t("stats.seriesTitle")}
+          subtitle={t("stats.seriesSubtitle")}
           actions={
-            <Button onClick={() => setSeries([...series, { label: "Nouveau", value: 0 }])}>
-              + Ajouter
+            <Button onClick={() => setSeries([...series, { label: tc("seriesNewLabel"), value: 0 }])}>
+              {tc("btnAdd")}
             </Button>
           }
         />
         <CardBody className="space-y-2">
           {series.length === 0 ? (
-            <p className="text-sm text-[var(--rp-muted)]">Aucune valeur.</p>
+            <p className="text-sm text-[var(--rp-muted)]">{tc("noStatSeries")}</p>
           ) : (
             series.map((p, i) => (
               <div key={`series-${i}`} className="flex items-center gap-2">
@@ -710,7 +719,7 @@ function StatsEditor() {
                   onChange={(e) =>
                     setSeries(series.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))
                   }
-                  placeholder="Label (ex. Lundi)"
+                  placeholder={tc("phSeriesLabel")}
                 />
                 <Input
                   className="w-32"
@@ -721,7 +730,7 @@ function StatsEditor() {
                       series.map((x, j) => (j === i ? { ...x, value: Number(e.target.value) } : x)),
                     )
                   }
-                  placeholder="Valeur"
+                  placeholder={tc("phSeriesValue")}
                 />
                 <ItemControls
                   index={i}
@@ -745,6 +754,8 @@ const STAFF_TIERS: StaffMember["tier"][] = ["founder", "admin", "mod", "dev", "s
 
 function StaffEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const staff = config.staff ?? [];
 
   function setStaff(next: StaffMember[]) {
@@ -754,8 +765,8 @@ function StaffEditor() {
   return (
     <Card>
       <CardHeader
-        title="Membres de l’équipe"
-        subtitle="Affichés sur la page Équipe (en plus des comptes admin/modérateur si l’option est activée dans Modules)."
+        title={t("staff.title")}
+        subtitle={t("staff.subtitle")}
         actions={
           <Button
             onClick={() =>
@@ -763,22 +774,22 @@ function StaffEditor() {
                 ...staff,
                 {
                   id: newId("st"),
-                  name: "Nouveau membre",
-                  role: "Modérateur",
+                  name: tc("staffNewName"),
+                  role: tc("staffNewRole"),
                   tier: "mod",
-                  bio: "Présente-toi en quelques mots.",
+                  bio: tc("staffNewBio"),
                   avatarUrl: "",
                 },
               ])
             }
           >
-            + Ajouter
+            {tc("btnAdd")}
           </Button>
         }
       />
       <CardBody className="space-y-2">
         {staff.length === 0 ? (
-          <p className="text-sm text-[var(--rp-muted)]">Aucun membre dans l’équipe.</p>
+          <p className="text-sm text-[var(--rp-muted)]">{tc("staffEmpty")}</p>
         ) : (
           staff.map((m, i) => (
             <Row key={m.id}>
@@ -789,14 +800,14 @@ function StaffEditor() {
                     onChange={(e) =>
                       setStaff(staff.map((x) => (x.id === m.id ? { ...x, name: e.target.value } : x)))
                     }
-                    placeholder="Nom"
+                    placeholder={tc("phName")}
                   />
                   <Input
                     value={m.role}
                     onChange={(e) =>
                       setStaff(staff.map((x) => (x.id === m.id ? { ...x, role: e.target.value } : x)))
                     }
-                    placeholder="Rôle (libellé)"
+                    placeholder={tc("phRoleLabel")}
                   />
                   <select
                     className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
@@ -809,9 +820,9 @@ function StaffEditor() {
                       )
                     }
                   >
-                    {STAFF_TIERS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
+                    {STAFF_TIERS.map((tier) => (
+                      <option key={tier} value={tier}>
+                        {tier}
                       </option>
                     ))}
                   </select>
@@ -824,7 +835,7 @@ function StaffEditor() {
                         ),
                       )
                     }
-                    placeholder="URL avatar (optionnel)"
+                    placeholder={tc("phAvatarUrl")}
                   />
                   <Textarea
                     className="md:col-span-4 min-h-[60px]"
@@ -832,7 +843,7 @@ function StaffEditor() {
                     onChange={(e) =>
                       setStaff(staff.map((x) => (x.id === m.id ? { ...x, bio: e.target.value } : x)))
                     }
-                    placeholder="Bio courte"
+                    placeholder={tc("phBioShort")}
                   />
                 </div>
                 <ItemControls
@@ -855,6 +866,8 @@ function StaffEditor() {
 
 function RulesEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const rules = config.rules ?? [];
 
   function setRules(next: RuleCategory[]) {
@@ -864,24 +877,24 @@ function RulesEditor() {
   return (
     <Card>
       <CardHeader
-        title="Règlement"
-        subtitle="Catégories et règles affichées sur la page Règlement."
+        title={t("rules.title")}
+        subtitle={t("rules.subtitle")}
         actions={
           <Button
             onClick={() =>
               setRules([
                 ...rules,
-                { id: newId("r"), title: "Nouvelle catégorie", items: ["Première règle"] },
+                { id: newId("r"), title: tc("rulesNewCatTitle"), items: [tc("rulesFirstRule")] },
               ])
             }
           >
-            + Catégorie
+            {tc("btnCategory")}
           </Button>
         }
       />
       <CardBody className="space-y-3">
         {rules.length === 0 ? (
-          <p className="text-sm text-[var(--rp-muted)]">Aucune catégorie.</p>
+          <p className="text-sm text-[var(--rp-muted)]">{tc("rulesEmpty")}</p>
         ) : (
           rules.map((cat, i) => (
             <Row key={cat.id}>
@@ -896,19 +909,19 @@ function RulesEditor() {
                           rules.map((x) => (x.id === cat.id ? { ...x, title: e.target.value } : x)),
                         )
                       }
-                      placeholder="Titre de la catégorie"
+                      placeholder={tc("rulesCatTitlePh")}
                     />
                     <Button
                       variant="outline"
                       onClick={() =>
                         setRules(
                           rules.map((x) =>
-                            x.id === cat.id ? { ...x, items: [...x.items, "Nouvelle règle"] } : x,
+                            x.id === cat.id ? { ...x, items: [...x.items, tc("rulesNewRule")] } : x,
                           ),
                         )
                       }
                     >
-                      + Règle
+                      {tc("btnRule")}
                     </Button>
                   </div>
                   {cat.items.map((it, j) => (
@@ -970,6 +983,8 @@ const ARTICLE_CATEGORIES: Article["category"][] = ["patch", "news", "event", "co
 
 function ArticlesEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const articles = config.articles ?? [];
 
   function setArticles(next: Article[]) {
@@ -979,31 +994,31 @@ function ArticlesEditor() {
   return (
     <Card>
       <CardHeader
-        title="Actualités / Articles"
-        subtitle="Affichés sur la page Actualités, l’accueil et les pages détail /actualites/[slug]."
+        title={t("articles.title")}
+        subtitle={t("articles.subtitle")}
         actions={
           <Button
             onClick={() =>
               setArticles([
                 {
-                  slug: `nouveau-${Date.now().toString(36)}`,
-                  title: "Nouvel article",
-                  excerpt: "Court résumé de l’article.",
+                  slug: `${tc("articleSlugPrefix")}-${Date.now().toString(36)}`,
+                  title: tc("articleNewTitle"),
+                  excerpt: tc("articleNewExcerpt"),
                   date: new Date().toISOString().slice(0, 10),
                   category: "news",
-                  bodyMarkdown: "# Titre\n\nÉcris ici le contenu en markdown.",
+                  bodyMarkdown: tc("articleNewBody"),
                 },
                 ...articles,
               ])
             }
           >
-            + Article
+            {tc("btnArticle")}
           </Button>
         }
       />
       <CardBody className="space-y-3">
         {articles.length === 0 ? (
-          <p className="text-sm text-[var(--rp-muted)]">Aucun article.</p>
+          <p className="text-sm text-[var(--rp-muted)]">{tc("articlesEmpty")}</p>
         ) : (
           articles.map((a, i) => (
             <Row key={a.slug}>
@@ -1017,7 +1032,7 @@ function ArticlesEditor() {
                         articles.map((x) => (x.slug === a.slug ? { ...x, title: e.target.value } : x)),
                       )
                     }
-                    placeholder="Titre"
+                    placeholder={tc("phTitle")}
                   />
                   <Input
                     className="md:col-span-3"
@@ -1072,7 +1087,7 @@ function ArticlesEditor() {
                         ),
                       )
                     }
-                    placeholder="Résumé"
+                    placeholder={tc("phExcerpt")}
                   />
                   <Textarea
                     className="md:col-span-12 min-h-[140px] font-mono text-xs"
@@ -1084,7 +1099,7 @@ function ArticlesEditor() {
                         ),
                       )
                     }
-                    placeholder="Contenu (markdown)"
+                    placeholder={tc("phMarkdown")}
                   />
                   <label className="md:col-span-12 inline-flex items-center gap-2 text-xs text-[var(--rp-muted)]">
                     <input
@@ -1098,7 +1113,7 @@ function ArticlesEditor() {
                         )
                       }
                     />
-                    Mettre en avant (featured)
+                    {tc("featuredLabel")}
                   </label>
                 </div>
                 <ItemControls
@@ -1128,6 +1143,8 @@ const BOUTIQUE_BADGES: NonNullable<BoutiqueProduct["badge"]>[] = [
 
 function BoutiqueEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const products = config.boutiqueProducts ?? [];
 
   function setProducts(next: BoutiqueProduct[]) {
@@ -1137,8 +1154,8 @@ function BoutiqueEditor() {
   return (
     <Card>
       <CardHeader
-        title="Produits boutique"
-        subtitle="Affichés sur la page Boutique. Si une URL Tebex est fournie, elle est utilisée directement."
+        title={t("boutique.title")}
+        subtitle={t("boutique.subtitle")}
         actions={
           <Button
             onClick={() =>
@@ -1146,21 +1163,21 @@ function BoutiqueEditor() {
                 ...products,
                 {
                   id: newId("p"),
-                  title: "Nouveau pack",
-                  description: "Décris le pack en quelques lignes.",
-                  priceLabel: "9,99€",
-                  perks: ["Avantage 1", "Avantage 2"],
+                  title: tc("boutiqueNewTitle"),
+                  description: tc("boutiqueNewDesc"),
+                  priceLabel: tc("boutiqueDefaultPrice"),
+                  perks: [tc("boutiquePerk1"), tc("boutiquePerk2")],
                 },
               ])
             }
           >
-            + Produit
+            {tc("btnProduct")}
           </Button>
         }
       />
       <CardBody className="space-y-3">
         {products.length === 0 ? (
-          <p className="text-sm text-[var(--rp-muted)]">Aucun produit.</p>
+          <p className="text-sm text-[var(--rp-muted)]">{tc("boutiqueNoProducts")}</p>
         ) : (
           products.map((p, i) => (
             <Row key={p.id}>
@@ -1174,7 +1191,7 @@ function BoutiqueEditor() {
                         products.map((x) => (x.id === p.id ? { ...x, title: e.target.value } : x)),
                       )
                     }
-                    placeholder="Titre"
+                    placeholder={tc("phTitle")}
                   />
                   <Input
                     className="md:col-span-3"
@@ -1186,7 +1203,7 @@ function BoutiqueEditor() {
                         ),
                       )
                     }
-                    placeholder="Prix (libellé)"
+                    placeholder={tc("phPrice")}
                   />
                   <select
                     className="md:col-span-2 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
@@ -1206,7 +1223,7 @@ function BoutiqueEditor() {
                       )
                     }
                   >
-                    <option value="">— Pas de badge —</option>
+                    <option value="">{tc("badgeNone")}</option>
                     {BOUTIQUE_BADGES.map((b) => (
                       <option key={b} value={b}>
                         {b}
@@ -1225,7 +1242,7 @@ function BoutiqueEditor() {
                         ),
                       )
                     }
-                    placeholder="Tebex pkgId"
+                    placeholder={tc("phTebexPkg")}
                   />
                   <Input
                     className="md:col-span-12"
@@ -1237,7 +1254,7 @@ function BoutiqueEditor() {
                         ),
                       )
                     }
-                    placeholder="URL Tebex (laisser vide pour générer depuis l’ID)"
+                    placeholder={tc("phTebex")}
                   />
                   <Textarea
                     className="md:col-span-12 min-h-[60px]"
@@ -1249,10 +1266,10 @@ function BoutiqueEditor() {
                         ),
                       )
                     }
-                    placeholder="Description"
+                    placeholder={tc("phDescription")}
                   />
                   <div className="md:col-span-12">
-                    <FieldLabel>Avantages (un par ligne)</FieldLabel>
+                    <FieldLabel>{tc("perksLabel")}</FieldLabel>
                     <Textarea
                       className="mt-1 min-h-[80px]"
                       value={p.perks.join("\n")}
@@ -1296,6 +1313,8 @@ const GALLERY_CATEGORIES: GalleryItem["category"][] = ["screenshot", "video", "c
 
 function GalleryEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const gallery = config.gallery ?? [];
 
   function setGallery(next: GalleryItem[]) {
@@ -1305,8 +1324,8 @@ function GalleryEditor() {
   return (
     <Card>
       <CardHeader
-        title="Galerie"
-        subtitle="Screenshots, vidéos et clips affichés sur la page Galerie."
+        title={t("gallery.title")}
+        subtitle={t("gallery.subtitle")}
         actions={
           <Button
             onClick={() =>
@@ -1314,20 +1333,20 @@ function GalleryEditor() {
                 ...gallery,
                 {
                   id: newId("g"),
-                  title: "Nouveau média",
-                  src: "https://...",
+                  title: tc("galleryNewTitle"),
+                  src: tc("galleryDefaultSrc"),
                   category: "screenshot",
                 },
               ])
             }
           >
-            + Média
+            {tc("btnMedia")}
           </Button>
         }
       />
       <CardBody className="space-y-2">
         {gallery.length === 0 ? (
-          <p className="text-sm text-[var(--rp-muted)]">Aucun média dans la galerie.</p>
+          <p className="text-sm text-[var(--rp-muted)]">{tc("galleryEmpty")}</p>
         ) : (
           gallery.map((g, i) => (
             <Row key={g.id}>
@@ -1341,7 +1360,7 @@ function GalleryEditor() {
                         gallery.map((x) => (x.id === g.id ? { ...x, title: e.target.value } : x)),
                       )
                     }
-                    placeholder="Titre"
+                    placeholder={tc("phTitle")}
                   />
                   <select
                     className="md:col-span-2 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2 text-sm text-[var(--rp-fg)]"
@@ -1370,7 +1389,7 @@ function GalleryEditor() {
                         gallery.map((x) => (x.id === g.id ? { ...x, src: e.target.value } : x)),
                       )
                     }
-                    placeholder="URL du média (image, vidéo, embed)"
+                    placeholder={tc("galleryMediaUrlPh")}
                   />
                   <Input
                     className="md:col-span-12"
@@ -1382,7 +1401,7 @@ function GalleryEditor() {
                         ),
                       )
                     }
-                    placeholder="URL externe (optionnelle, ex. lien YouTube)"
+                    placeholder={tc("galleryExternalUrlPh")}
                   />
                 </div>
                 <ItemControls
@@ -1405,6 +1424,8 @@ function GalleryEditor() {
 
 function FaqEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const faq = config.faq ?? [];
 
   function setFaq(next: FaqItem[]) {
@@ -1414,24 +1435,24 @@ function FaqEditor() {
   return (
     <Card>
       <CardHeader
-        title="FAQ"
-        subtitle="Questions fréquentes (utilisable sur les pages publiques)."
+        title={t("faq.title")}
+        subtitle={t("faq.subtitle")}
         actions={
           <Button
             onClick={() =>
               setFaq([
                 ...faq,
-                { question: "Nouvelle question ?", answer: "Réponse claire et concise." },
+                { question: tc("faqNewQ"), answer: tc("faqNewA") },
               ])
             }
           >
-            + Question
+            {tc("btnQuestion")}
           </Button>
         }
       />
       <CardBody className="space-y-2">
         {faq.length === 0 ? (
-          <p className="text-sm text-[var(--rp-muted)]">Aucune question.</p>
+          <p className="text-sm text-[var(--rp-muted)]">{tc("faqNoQuestions")}</p>
         ) : (
           faq.map((q, i) => (
             <Row key={`faq-${i}`}>
@@ -1442,14 +1463,14 @@ function FaqEditor() {
                     onChange={(e) =>
                       setFaq(faq.map((x, j) => (j === i ? { ...x, question: e.target.value } : x)))
                     }
-                    placeholder="Question"
+                    placeholder={tc("phQuestion")}
                   />
                   <Textarea
                     value={q.answer}
                     onChange={(e) =>
                       setFaq(faq.map((x, j) => (j === i ? { ...x, answer: e.target.value } : x)))
                     }
-                    placeholder="Réponse"
+                    placeholder={tc("phAnswer")}
                   />
                 </div>
                 <ItemControls
@@ -1472,17 +1493,16 @@ function FaqEditor() {
 
 function ContactEditor() {
   const { config, setConfig } = useSiteConfig();
+  const t = useTranslations("admin.content");
+  const tc = useTranslations("admin.content.chrome");
   const contact = config.contact ?? {};
 
   return (
     <Card>
-      <CardHeader
-        title="Contact"
-        subtitle="Email de support et salon Discord pour les tickets (affichés ou utilisés sur la page Contact)."
-      />
+      <CardHeader title={t("contact.title")} subtitle={t("contact.subtitle")} />
       <CardBody className="grid gap-4 md:grid-cols-2">
         <div>
-          <FieldLabel>Email de support</FieldLabel>
+          <FieldLabel>{tc("contactSupportEmail")}</FieldLabel>
           <Input
             className="mt-2"
             type="email"
@@ -1493,11 +1513,11 @@ function ContactEditor() {
                 contact: { ...contact, supportEmail: e.target.value || undefined },
               })
             }
-            placeholder="support@harrata-city.fr"
+            placeholder={tc("contactEmailPh")}
           />
         </div>
         <div>
-          <FieldLabel>Salon Discord tickets</FieldLabel>
+          <FieldLabel>{tc("contactDiscordRoom")}</FieldLabel>
           <Input
             className="mt-2"
             value={contact.ticketDiscordChannel ?? ""}
@@ -1507,7 +1527,7 @@ function ContactEditor() {
                 contact: { ...contact, ticketDiscordChannel: e.target.value || undefined },
               })
             }
-            placeholder="#tickets-staff"
+            placeholder={tc("phDiscordChannel")}
           />
         </div>
       </CardBody>

@@ -1,16 +1,13 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
-import {
-  CATEGORY_LABELS,
-  EXTENSION_CATALOG,
-  type ExtensionListing,
-} from "@/lib/extensions/catalog";
+import { EXTENSION_CATALOG, type ExtensionListing } from "@/lib/extensions/catalog";
 import {
   getExtensions,
   installFromListing,
@@ -27,8 +24,29 @@ import { TicketsAdminPanel } from "@/components/admin/TicketsAdminPanel";
 type Msg = { ok: boolean; text: string } | null;
 
 export function AdminExtensionsTab() {
+  const te = useTranslations("admin.extensions");
+  const locale = useLocale();
   const { config, setConfig, persist } = useSiteConfig();
   const installed = useMemo(() => getExtensions(config), [config]);
+
+  function categoryLabel(cat: string) {
+    switch (cat) {
+      case "forum":
+        return te("category_forum");
+      case "boutique":
+        return te("category_boutique");
+      case "communaute":
+        return te("category_communaute");
+      case "serveur":
+        return te("category_serveur");
+      case "ui":
+        return te("category_ui");
+      case "autre":
+        return te("category_autre");
+      default:
+        return cat;
+    }
+  }
 
   const [msg, setMsg] = useState<Msg>(null);
   const [filter, setFilter] = useState<"all" | "free" | "paid" | "installed">("all");
@@ -58,7 +76,7 @@ export function AdminExtensionsTab() {
       apply(res.config);
       setMsg({
         ok: true,
-        text: `« ${parsed.manifest.name} » importée depuis ${file.name}.`,
+        text: te("msgZipImported", { name: parsed.manifest.name, file: file.name }),
       });
     } catch (err) {
       setMsg({ ok: false, text: (err as Error).message });
@@ -83,7 +101,7 @@ export function AdminExtensionsTab() {
 
   async function handleInstall(listing: ExtensionListing) {
     if (listing.comingSoon) {
-      setMsg({ ok: false, text: `« ${listing.name} » sera bientôt en vente.` });
+      setMsg({ ok: false, text: te("msgComingSoon", { name: listing.name }) });
       return;
     }
     if (listing.pricing === "paid" && listing.purchaseUrl) {
@@ -99,7 +117,7 @@ export function AdminExtensionsTab() {
       setZipBusy(true);
       try {
         const res = await fetch(listing.purchaseUrl);
-        if (!res.ok) throw new Error(`Téléchargement échoué (HTTP ${res.status}).`);
+        if (!res.ok) throw new Error(te("msgDownloadFailed", { status: res.status }));
         const blob = await res.blob();
         const filename = listing.purchaseUrl.split("/").pop() ?? "extension.zip";
         await handleZipFile(new File([blob], filename, { type: "application/zip" }));
@@ -110,13 +128,13 @@ export function AdminExtensionsTab() {
       return;
     }
     apply(installFromListing(config, listing));
-    setMsg({ ok: true, text: `« ${listing.name} » installée.` });
+    setMsg({ ok: true, text: te("msgInstalled", { name: listing.name }) });
   }
 
   function handleUninstall(id: string, name: string) {
-    if (!confirm(`Désinstaller « ${name} » ? Sa configuration sera perdue.`)) return;
+    if (!confirm(te("msgUninstallConfirm", { name }))) return;
     apply(uninstallExtension(config, id));
-    setMsg({ ok: true, text: `« ${name} » désinstallée.` });
+    setMsg({ ok: true, text: te("msgUninstalled", { name }) });
   }
 
   function handleToggle(id: string, enabled: boolean) {
@@ -137,12 +155,12 @@ export function AdminExtensionsTab() {
         ? (JSON.parse(editBuffer) as Record<string, unknown>)
         : {};
       apply(updateExtensionSettings(config, editingId, parsed));
-      setMsg({ ok: true, text: "Configuration enregistrée." });
+      setMsg({ ok: true, text: te("msgSaved") });
       setEditingId(null);
     } catch (err) {
       setMsg({
         ok: false,
-        text: `JSON invalide : ${(err as Error).message}`,
+        text: te("msgInvalidJson", { error: (err as Error).message }),
       });
     }
   }
@@ -159,9 +177,9 @@ export function AdminExtensionsTab() {
       apply(res.config);
       setManualJson("");
       setManualOpen(false);
-      setMsg({ ok: true, text: `« ${obj.name ?? obj.id} » importée.` });
+      setMsg({ ok: true, text: te("msgManualImported", { name: String(obj.name ?? obj.id) }) });
     } catch (err) {
-      setMsg({ ok: false, text: `JSON invalide : ${(err as Error).message}` });
+      setMsg({ ok: false, text: te("msgInvalidJson", { error: (err as Error).message }) });
     }
   }
 
@@ -176,10 +194,7 @@ export function AdminExtensionsTab() {
 
   return (
     <Card>
-      <CardHeader
-        title="Extensions"
-        subtitle="Activez, configurez ou achetez des extensions pour enrichir votre site (modules forum, intégrations, packs visuels…)."
-      />
+      <CardHeader title={te("cardTitle")} subtitle={te("cardSubtitle")} />
       <CardBody className="space-y-8">
         {msg ? (
           <p
@@ -195,11 +210,9 @@ export function AdminExtensionsTab() {
         <section>
           <header className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-[var(--rp-fg)]">
-                Extensions installées
-              </h3>
+              <h3 className="text-base font-semibold text-[var(--rp-fg)]">{te("installedTitle")}</h3>
               <p className="mt-1 text-xs text-[var(--rp-muted)]">
-                {installed.length} extension(s) installée(s) sur cette instance.
+                {te("installedCount", { count: installed.length })}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -208,7 +221,7 @@ export function AdminExtensionsTab() {
                 disabled={zipBusy}
                 onClick={() => zipInputRef.current?.click()}
               >
-                {zipBusy ? "Extraction…" : "Importer un .zip"}
+                {zipBusy ? te("importZipBusy") : te("importZip")}
               </Button>
               <Button
                 type="button"
@@ -218,7 +231,7 @@ export function AdminExtensionsTab() {
                   setManualJson("");
                 }}
               >
-                {manualOpen ? "Annuler" : "Importer un JSON"}
+                {manualOpen ? te("importJsonCancel") : te("importJson")}
               </Button>
             </div>
             <input
@@ -238,38 +251,26 @@ export function AdminExtensionsTab() {
             className="mt-3 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-[var(--rp-radius)] border border-dashed border-[var(--rp-border)] bg-black/15 px-4 py-5 text-center text-xs text-[var(--rp-muted)] transition hover:border-[color-mix(in_oklab,var(--rp-primary)_45%,var(--rp-border))] hover:bg-black/25"
             onClick={() => zipInputRef.current?.click()}
           >
-            <span className="font-semibold text-[var(--rp-fg)]">
-              Glissez-déposez un fichier .zip
-            </span>
+            <span className="font-semibold text-[var(--rp-fg)]">{te("dropzoneBold")}</span>
             <span>
-              ou cliquez pour choisir un fichier. L&apos;archive doit contenir un{" "}
-              <span className="font-mono">extension.json</span> à la racine. Limite 5 Mo.
+              {te("dropzoneRestBefore")}
+              <span className="font-mono">extension.json</span>
+              {te("dropzoneRestAfter")}
             </span>
           </label>
 
           {manualOpen ? (
             <div className="mt-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 p-4">
-              <p className="text-xs text-[var(--rp-muted)]">
-                Collez un JSON d&apos;extension. Champs obligatoires :{" "}
-                <span className="font-mono">id</span>,{" "}
-                <span className="font-mono">name</span>,{" "}
-                <span className="font-mono">version</span>.
-              </p>
+              <p className="text-xs text-[var(--rp-muted)]">{te("manualHint")}</p>
               <Textarea
                 className="mt-2 min-h-[140px] font-mono text-xs"
                 value={manualJson}
                 onChange={(e) => setManualJson(e.target.value)}
-                placeholder={`{
-  "id": "mon-extension",
-  "name": "Mon extension",
-  "version": "1.0.0",
-  "description": "…",
-  "settings": {}
-}`}
+                placeholder={te("manualPlaceholder")}
               />
               <div className="mt-2 flex gap-2">
                 <Button type="button" onClick={importManual}>
-                  Importer
+                  {te("manualImport")}
                 </Button>
               </div>
             </div>
@@ -277,7 +278,7 @@ export function AdminExtensionsTab() {
 
           {installed.length === 0 ? (
             <p className="mt-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-4 py-6 text-center text-sm text-[var(--rp-muted)]">
-              Aucune extension installée pour le moment. Parcourez le catalogue ci-dessous.
+              {te("emptyInstalled")}
             </p>
           ) : (
             <ul className="mt-4 space-y-3">
@@ -296,26 +297,25 @@ export function AdminExtensionsTab() {
                           v{ext.version}
                         </span>
                         {ext.category ? (
-                          <Badge tone="neutral">
-                            {CATEGORY_LABELS[ext.category as keyof typeof CATEGORY_LABELS] ??
-                              ext.category}
-                          </Badge>
+                          <Badge tone="neutral">{categoryLabel(ext.category)}</Badge>
                         ) : null}
                         {ext.enabled ? (
-                          <Badge tone="success">Activée</Badge>
+                          <Badge tone="success">{te("badgeEnabled")}</Badge>
                         ) : (
-                          <Badge tone="warning">Désactivée</Badge>
+                          <Badge tone="warning">{te("badgeDisabled")}</Badge>
                         )}
                         {ext.source === "manual" ? (
-                          <Badge tone="neutral">Importée</Badge>
+                          <Badge tone="neutral">{te("badgeImported")}</Badge>
                         ) : null}
                       </div>
                       {ext.description ? (
                         <p className="mt-1 text-xs text-[var(--rp-muted)]">{ext.description}</p>
                       ) : null}
                       <p className="mt-1 font-mono text-[10px] text-[var(--rp-muted)]">
-                        {ext.id} · installée le{" "}
-                        {new Date(ext.installedAt).toLocaleDateString("fr-FR")}
+                        {te("installedLine", {
+                          id: ext.id,
+                          date: new Date(ext.installedAt).toLocaleDateString(locale),
+                        })}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -325,21 +325,21 @@ export function AdminExtensionsTab() {
                           checked={ext.enabled}
                           onChange={(e) => handleToggle(ext.id, e.target.checked)}
                         />
-                        Activer
+                        {te("activate")}
                       </label>
                       <button
                         type="button"
                         className="rounded-full border border-[var(--rp-border)] px-3 py-1.5 text-xs font-semibold text-[var(--rp-fg)] hover:bg-white/10"
                         onClick={() => startEditingSettings(ext.id)}
                       >
-                        Configurer
+                        {te("configure")}
                       </button>
                       <button
                         type="button"
                         className="rounded-full border border-[color-mix(in_oklab,var(--rp-danger)_45%,var(--rp-border))] px-3 py-1.5 text-xs font-semibold text-[var(--rp-danger)] hover:bg-[color-mix(in_oklab,var(--rp-danger)_10%,transparent)]"
                         onClick={() => handleUninstall(ext.id, ext.name)}
                       >
-                        Désinstaller
+                        {te("uninstall")}
                       </button>
                     </div>
                   </div>
@@ -358,7 +358,7 @@ export function AdminExtensionsTab() {
                   {editingId === ext.id ? (
                     <div className="mt-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/30 p-3">
                       <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                        Settings (JSON)
+                        {te("settingsLabel")}
                       </label>
                       <Textarea
                         className="mt-1.5 min-h-[120px] font-mono text-xs"
@@ -367,14 +367,14 @@ export function AdminExtensionsTab() {
                       />
                       <div className="mt-2 flex gap-2">
                         <Button type="button" onClick={saveSettings}>
-                          Enregistrer
+                          {te("save")}
                         </Button>
                         <Button
                           type="button"
                           variant="ghost"
                           onClick={() => setEditingId(null)}
                         >
-                          Annuler
+                          {te("cancel")}
                         </Button>
                       </div>
                     </div>
@@ -389,21 +389,16 @@ export function AdminExtensionsTab() {
         <section className="border-t border-[var(--rp-border)] pt-6">
           <header className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-[var(--rp-fg)]">
-                Catalogue d&apos;extensions
-              </h3>
-              <p className="mt-1 text-xs text-[var(--rp-muted)]">
-                Extensions officielles. Le marketplace en ligne arrive bientôt — vous pouvez
-                déjà préparer vos slots.
-              </p>
+              <h3 className="text-base font-semibold text-[var(--rp-fg)]">{te("catalogTitle")}</h3>
+              <p className="mt-1 text-xs text-[var(--rp-muted)]">{te("catalogSubtitle")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {(
                 [
-                  ["all", "Tout"],
-                  ["free", "Gratuit"],
-                  ["paid", "Payant"],
-                  ["installed", "Installé"],
+                  ["all", te("filterAll")],
+                  ["free", te("filterFree")],
+                  ["paid", te("filterPaid")],
+                  ["installed", te("filterInstalled")],
                 ] as const
               ).map(([id, label]) => (
                 <button
@@ -424,7 +419,7 @@ export function AdminExtensionsTab() {
 
           {visibleCatalog.length === 0 ? (
             <p className="mt-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-4 py-6 text-center text-sm text-[var(--rp-muted)]">
-              Aucune extension dans ce filtre.
+              {te("catalogEmpty")}
             </p>
           ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -456,17 +451,17 @@ export function AdminExtensionsTab() {
                           <span className="text-sm font-semibold text-[var(--rp-fg)]">
                             {listing.name}
                           </span>
-                          <Badge tone="neutral">{CATEGORY_LABELS[listing.category]}</Badge>
+                          <Badge tone="neutral">{categoryLabel(listing.category)}</Badge>
                           {listing.pricing === "free" ? (
-                            <Badge tone="success">Gratuit</Badge>
+                            <Badge tone="success">{te("badgeFree")}</Badge>
                           ) : (
                             <Badge tone="primary">
-                              {listing.priceLabel ?? "Payant"}
+                              {listing.priceLabel ?? te("badgePaidDefault")}
                             </Badge>
                           )}
-                          {isInstalled ? <Badge tone="accent">Installée</Badge> : null}
+                          {isInstalled ? <Badge tone="accent">{te("badgeInstalled")}</Badge> : null}
                           {listing.comingSoon ? (
-                            <Badge tone="warning">Bientôt</Badge>
+                            <Badge tone="warning">{te("badgeSoon")}</Badge>
                           ) : null}
                         </div>
                         <p className="mt-1 text-xs text-[var(--rp-muted)]">
@@ -503,7 +498,7 @@ export function AdminExtensionsTab() {
                           onClick={() => handleUninstall(listing.id, listing.name)}
                           className="rounded-full border border-[color-mix(in_oklab,var(--rp-danger)_45%,var(--rp-border))] px-3 py-1.5 text-xs font-semibold text-[var(--rp-danger)] hover:bg-[color-mix(in_oklab,var(--rp-danger)_10%,transparent)]"
                         >
-                          Désinstaller
+                          {te("uninstall")}
                         </button>
                       ) : listing.comingSoon ? (
                         <button
@@ -511,7 +506,7 @@ export function AdminExtensionsTab() {
                           disabled
                           className="cursor-not-allowed rounded-full border border-[var(--rp-border)] bg-black/30 px-3 py-1.5 text-xs font-semibold text-[var(--rp-muted)]"
                         >
-                          Bientôt en vente
+                          {te("soonForSale")}
                         </button>
                       ) : listing.pricing === "paid" ? (
                         <button
@@ -519,7 +514,7 @@ export function AdminExtensionsTab() {
                           onClick={() => handleInstall(listing)}
                           className="rounded-full bg-[var(--rp-primary)] px-3 py-1.5 text-xs font-semibold text-[#041016] hover:brightness-110"
                         >
-                          Acheter — {listing.priceLabel ?? ""}
+                          {te("buyPrefix", { price: listing.priceLabel ?? te("badgePaidDefault") })}
                         </button>
                       ) : (
                         <button
@@ -527,7 +522,7 @@ export function AdminExtensionsTab() {
                           onClick={() => handleInstall(listing)}
                           className="rounded-full bg-[var(--rp-primary)] px-3 py-1.5 text-xs font-semibold text-[#041016] hover:brightness-110"
                         >
-                          Installer
+                          {te("install")}
                         </button>
                       )}
                     </div>
@@ -541,17 +536,17 @@ export function AdminExtensionsTab() {
         <details className="group rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/15 px-4 py-3">
           <summary className="cursor-pointer list-none text-xs font-semibold text-[var(--rp-fg)] hover:text-[var(--rp-primary)]">
             <span className="mr-1.5 inline-block transition-transform group-open:rotate-90">▶</span>
-            Comment créer ma propre extension ?
+            {te("guideTitle")}
           </summary>
           <div className="mt-3 space-y-3 text-[12px] leading-relaxed text-[var(--rp-muted)]">
             <p>
-              Une extension = un fichier{" "}
-              <span className="font-mono text-[var(--rp-fg)]">extension.json</span> (à la racine
-              d&apos;un zip) + optionnellement du code React qui consomme ses settings.
+              {te("guideIntroBefore")}
+              <span className="font-mono text-[var(--rp-fg)]">extension.json</span>
+              {te("guideIntroAfter")}
             </p>
 
             <div>
-              <p className="font-semibold text-[var(--rp-fg)]">1. Le manifest minimal</p>
+              <p className="font-semibold text-[var(--rp-fg)]">{te("guide1Title")}</p>
               <pre className="mt-1 overflow-x-auto rounded border border-white/10 bg-black/40 p-2 font-mono text-[11px] text-[var(--rp-fg)]">
 {`{
   "id": "mon-extension",
@@ -563,27 +558,22 @@ export function AdminExtensionsTab() {
 }`}
               </pre>
               <p className="mt-1">
-                Règles : <span className="font-mono">id</span> matche{" "}
-                <span className="font-mono">[a-z0-9_-]&#123;2,40&#125;</span>. Zip ≤ 5 Mo.{" "}
-                <span className="font-mono">extension.json</span> à la racine, pas dans un
-                sous-dossier.
+                {te("guide1RulesBefore")}
+                <span className="font-mono">{"[a-z0-9_-]{2,40}"}</span>
+                {te("guide1RulesMid")}
+                <span className="font-mono">extension.json</span>
+                {te("guide1RulesAfter")}
               </p>
             </div>
 
             <div>
-              <p className="font-semibold text-[var(--rp-fg)]">2. L&apos;importer</p>
-              <p>
-                Glissez le zip dans la zone d&apos;import ci-dessus, ou collez le JSON via
-                « Importer un JSON ». L&apos;extension apparaît dans « Installées ».
-              </p>
+              <p className="font-semibold text-[var(--rp-fg)]">{te("guide2Title")}</p>
+              <p>{te("guide2Body")}</p>
             </div>
 
             <div>
-              <p className="font-semibold text-[var(--rp-fg)]">3. Lui donner un effet visible</p>
-              <p>
-                Dans votre code, créez un composant React qui teste la présence de l&apos;extension
-                et lit ses settings :
-              </p>
+              <p className="font-semibold text-[var(--rp-fg)]">{te("guide3Title")}</p>
+              <p>{te("guide3Intro")}</p>
               <pre className="mt-1 overflow-x-auto rounded border border-white/10 bg-black/40 p-2 font-mono text-[11px] text-[var(--rp-fg)]">
 {`import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { getExtension, isExtensionEnabled } from "@/lib/extensions/manage";
@@ -596,23 +586,17 @@ export function MonExtension() {
 }`}
               </pre>
               <p className="mt-1">
-                Montez le composant dans{" "}
-                <span className="font-mono">src/components/extensions/ExtensionsHost.tsx</span>{" "}
-                pour qu&apos;il soit présent partout.
+                {te("guide3FooterBefore")}
+                <span className="font-mono">src/components/extensions/ExtensionsHost.tsx</span>
+                {te("guide3FooterAfter")}
               </p>
             </div>
 
             <div>
-              <p className="font-semibold text-[var(--rp-fg)]">4. Inspirations</p>
-              <p>
-                Regardez les extensions existantes pour voir des cas concrets :{" "}
-                <span className="font-mono">welcome-banner</span> (cas simple),{" "}
-                <span className="font-mono">live-chat</span> (BroadcastChannel),{" "}
-                <span className="font-mono">tickets-rp</span> (store dédié + admin),{" "}
-                <span className="font-mono">fivem-player-counter</span> (fetch API + cache).
-              </p>
+              <p className="font-semibold text-[var(--rp-fg)]">{te("guide4Title")}</p>
+              <p>{te("guide4Body")}</p>
               <p className="mt-1">
-                Guide complet :{" "}
+                {te("guide4ReadmeBefore")}
                 <span className="font-mono">examples/extensions/README.md</span>
               </p>
             </div>

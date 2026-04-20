@@ -3,7 +3,7 @@ import { DM_Sans, Syne } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { Suspense } from "react";
-import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AccountProvider } from "@/components/providers/AccountProvider";
 import { SiteConfigProvider } from "@/components/providers/SiteConfigProvider";
@@ -17,7 +17,9 @@ import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { defaultSiteConfig } from "@/config/default-site";
+import { contentEN } from "@/i18n/content-en";
 import { routing } from "@/i18n/routing";
+import { UrlBoundIntlProvider } from "@/components/providers/UrlBoundIntlProvider";
 
 /** URLs canoniques / Open Graph — plus de https://example.com en local. */
 function metadataBaseUrl(): URL {
@@ -66,10 +68,13 @@ export async function generateMetadata({
       template: `%s · ${defaultSiteConfig.meta.siteName}`,
     },
     description: t("description"),
-    keywords: defaultSiteConfig.meta.keywords,
+    keywords:
+      locale === "en" && Array.isArray(contentEN.meta?.keywords) && contentEN.meta.keywords.length > 0
+        ? contentEN.meta.keywords
+        : defaultSiteConfig.meta.keywords,
     alternates: {
       languages: {
-        fr: "/",
+        fr: "/fr",
         en: "/en",
       },
     },
@@ -108,7 +113,7 @@ export default async function LocaleLayout({
       <body
         className={`${heading.variable} ${body.variable} min-h-screen bg-[var(--rp-bg)] text-[var(--rp-fg)] antialiased`}
       >
-        <NextIntlClientProvider>
+        <UrlBoundIntlProvider initialLocale={locale as "fr" | "en"}>
           <SiteConfigProvider>
             <AccountProvider>
               <Suspense fallback={null}>
@@ -127,7 +132,7 @@ export default async function LocaleLayout({
               <ExtensionsHost />
             </AccountProvider>
           </SiteConfigProvider>
-        </NextIntlClientProvider>
+        </UrlBoundIntlProvider>
       </body>
     </html>
   );

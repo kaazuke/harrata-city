@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { Button } from "@/components/ui/Button";
@@ -19,6 +20,7 @@ import { AdminForumLogsTab } from "@/components/admin/AdminForumLogsTab";
 import { AdminForumCategoriesTab } from "@/components/admin/AdminForumCategoriesTab";
 import { AdminRolesTab } from "@/components/admin/AdminRolesTab";
 import { AdminExtensionsTab } from "@/components/admin/AdminExtensionsTab";
+import { ListingPrepPanel } from "@/components/admin/ListingPrepPanel";
 import { AdminSupportTab } from "@/components/admin/AdminSupportTab";
 import { countNewMessages, supportChannel } from "@/lib/support/store";
 
@@ -35,28 +37,43 @@ type Tab =
   | "forum-cats"
   | "forum-logs"
   | "extensions"
+  | "listing"
   | "support"
   | "forms"
   | "integrations"
   | "io";
 
-const MODULE_LABELS: Record<keyof SiteConfig["modules"], string> = {
-  announcementBar: "Bandeau d’annonces",
-  playerCounter: "Compteur joueurs (accueil)",
-  serverStatus: "Statut serveur",
-  ipCopy: "Copie IP / commande",
-  statsPreview: "Statistiques (aperçu accueil)",
-  boutiquePromo: "Mise en avant boutique",
-  newsHighlight: "Bloc actualités (accueil)",
-  galleryFilters: "Filtres galerie",
-  ticketVisual: "Visuel tickets (contact)",
-  forum: "Forum communautaire",
-  staffAutoFromAccounts: "Équipe : afficher automatiquement les comptes admin/modérateur",
+const TAB_I18N_KEY: Record<Tab, string> = {
+  identity: "identity",
+  theme: "theme",
+  server: "server",
+  modules: "modules",
+  nav: "nav",
+  textes: "textes",
+  contents: "contents",
+  users: "users",
+  roles: "roles",
+  "forum-cats": "forumCats",
+  "forum-logs": "forumLogs",
+  extensions: "extensions",
+  listing: "listing",
+  support: "support",
+  forms: "forms",
+  integrations: "integrations",
+  io: "io",
 };
 
 export function AdminClient() {
+  const t = useTranslations("admin");
+  const tTabs = useTranslations("admin.tabs");
+  const tMod = useTranslations("admin.modules");
+  const tTheme = useTranslations("admin.theme");
   const { config, setConfig, resetConfig, persist, exportJson, importFromJson } =
     useSiteConfig();
+  const locale = useLocale() as "fr" | "en";
+  const pathname = usePathname();
+  const router = useRouter();
+  const [localePending, startLocaleTransition] = useTransition();
   const { ready, user, accounts, hasPermission } = useAccount();
   const [tab, setTab] = useState<Tab>("identity");
   const [importText, setImportText] = useState("");
@@ -84,10 +101,18 @@ export function AdminClient() {
     }
   }, [tab, formsJson]);
 
+  /** Garde `config.locale` aligné sur la locale d’URL (switcher header, navigation, etc.). */
+  useEffect(() => {
+    if (config.locale !== locale) {
+      setConfig({ ...config, locale: locale });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- déclenché uniquement quand la locale de route change
+  }, [locale]);
+
   if (!ready) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center text-sm text-[var(--rp-muted)]">
-        Chargement…
+        {t("loading")}
       </div>
     );
   }
@@ -96,16 +121,14 @@ export function AdminClient() {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
         <h1 className="font-heading text-2xl font-semibold text-[var(--rp-fg)]">
-          Configuration initiale
+          {t("gate.initTitle")}
         </h1>
-        <p className="mt-3 text-sm text-[var(--rp-muted)]">
-          Aucun compte n’existe encore. Créez le compte administrateur pour accéder au panneau.
-        </p>
+        <p className="mt-3 text-sm text-[var(--rp-muted)]">{t("gate.initBody")}</p>
         <Link
           href="/inscription"
           className="mt-6 inline-block rounded-full bg-[var(--rp-primary)] px-4 py-2 text-sm font-semibold text-[#041016] hover:brightness-110"
         >
-          Créer le compte administrateur
+          {t("gate.createAdmin")}
         </Link>
       </div>
     );
@@ -114,25 +137,24 @@ export function AdminClient() {
   if (!user || !hasPermission("admin.access")) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <h1 className="font-heading text-2xl font-semibold text-[var(--rp-fg)]">Accès refusé</h1>
-        <p className="mt-3 text-sm text-[var(--rp-muted)]">
-          Le panneau d’administration est réservé aux comptes ayant la permission{" "}
-          <span className="font-mono">admin.access</span>.
-        </p>
+        <h1 className="font-heading text-2xl font-semibold text-[var(--rp-fg)]">
+          {t("gate.deniedTitle")}
+        </h1>
+        <p className="mt-3 text-sm text-[var(--rp-muted)]">{t("gate.deniedBody")}</p>
         <div className="mt-6 flex justify-center gap-3">
           {!user ? (
             <Link
               href="/connexion"
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-[var(--rp-fg)] hover:bg-white/10"
             >
-              Se connecter
+              {t("gate.login")}
             </Link>
           ) : null}
           <Link
             href="/"
             className="rounded-full bg-[var(--rp-primary)] px-4 py-2 text-sm font-semibold text-[#041016] hover:brightness-110"
           >
-            Retour à l’accueil
+            {t("gate.home")}
           </Link>
         </div>
       </div>
@@ -150,21 +172,17 @@ export function AdminClient() {
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-[var(--rp-fg)]">
-              Administration
+              {t("header.title")}
             </h1>
-            <p className="mt-2 text-sm text-[var(--rp-muted)]">
-              Modifiez le branding sans toucher au code. Toutes les modifications sont
-              <span className="font-semibold text-[var(--rp-success)]"> sauvegardées automatiquement </span>
-              dans votre navigateur (localStorage) et exportables pour déploiement.
-            </p>
+            <p className="mt-2 text-sm text-[var(--rp-muted)]">{t("header.subtitle")}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--rp-success)_45%,var(--rp-border))] bg-[color-mix(in_oklab,var(--rp-success)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold text-[var(--rp-success)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--rp-success)]" aria-hidden />
-              Auto-save activé
+              {t("header.autoSave")}
             </span>
             <Button type="button" variant="ghost" onClick={() => resetConfig()}>
-              Réinitialiser
+              {t("header.reset")}
             </Button>
           </div>
         </div>
@@ -172,24 +190,25 @@ export function AdminClient() {
         <div className="mt-6 flex flex-wrap gap-2">
           {(
             [
-              ["identity", "Identité"],
-              ["theme", "Thème"],
-              ["server", "Serveur & liens"],
-              ["modules", "Modules"],
-              ["nav", "Navigation"],
-              ["textes", "Textes & CSS"],
-              ["contents", "Contenus"],
-              ["users", "Utilisateurs"],
-              ["roles", "Rôles & permissions"],
-              ["forum-cats", "Catégories forum"],
-              ["forum-logs", "Logs forum"],
-              ["extensions", "Extensions"],
-              ["support", "Support"],
-              ["forms", "Formulaires"],
-              ["integrations", "Intégrations"],
-              ["io", "Import / Export"],
+              "identity",
+              "theme",
+              "server",
+              "modules",
+              "nav",
+              "textes",
+              "contents",
+              "users",
+              "roles",
+              "forum-cats",
+              "forum-logs",
+              "extensions",
+              "listing",
+              "support",
+              "forms",
+              "integrations",
+              "io",
             ] as const
-          ).map(([id, label]) => (
+          ).map((id) => (
             <button
               key={id}
               type="button"
@@ -200,7 +219,7 @@ export function AdminClient() {
                   : "border-[var(--rp-border)] text-[var(--rp-muted)] hover:bg-white/5"
               }`}
             >
-              {label}
+              {tTabs(TAB_I18N_KEY[id])}
               {id === "support" && supportNewCount > 0 ? (
                 <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--rp-danger)] px-1 text-[10px] font-bold text-white">
                   {supportNewCount > 9 ? "9+" : supportNewCount}
@@ -214,10 +233,12 @@ export function AdminClient() {
       <div className="mt-8 space-y-6">
         {tab === "identity" ? (
           <Card>
-            <CardHeader title="Identité & SEO" />
+            <CardHeader title={t("identity.cardTitle")} />
             <CardBody className="grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Nom du serveur</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {t("identity.siteName")}
+                </label>
                 <Input
                   className="mt-2"
                   value={config.meta.siteName}
@@ -230,7 +251,9 @@ export function AdminClient() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Slogan</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {t("identity.slogan")}
+                </label>
                 <Input
                   className="mt-2"
                   value={config.meta.slogan}
@@ -243,7 +266,9 @@ export function AdminClient() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Description</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {t("identity.description")}
+                </label>
                 <Textarea
                   className="mt-2"
                   value={config.meta.description}
@@ -257,7 +282,7 @@ export function AdminClient() {
               </div>
               <div className="md:col-span-2">
                 <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                  Mots-clés (séparés par des virgules)
+                  {t("identity.keywords")}
                 </label>
                 <Input
                   className="mt-2"
@@ -278,12 +303,12 @@ export function AdminClient() {
               </div>
               <div className="md:col-span-2">
                 <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                  Logo (URL image)
+                  {t("identity.logoUrl")}
                 </label>
                 <Input
                   className="mt-2"
                   value={config.meta.logoUrl ?? ""}
-                  placeholder="https://…"
+                  placeholder={t("identity.logoPlaceholder")}
                   onChange={(e) =>
                     setConfig({
                       ...config,
@@ -293,16 +318,25 @@ export function AdminClient() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Langue UI</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {t("identity.uiLang")}
+                </label>
                 <select
-                  className="mt-2 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2.5 text-sm text-[var(--rp-fg)]"
-                  value={config.locale}
-                  onChange={(e) =>
-                    setConfig({ ...config, locale: e.target.value as "fr" | "en" })
-                  }
+                  className="mt-2 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2.5 text-sm text-[var(--rp-fg)] disabled:opacity-60"
+                  value={locale}
+                  disabled={localePending}
+                  onChange={(e) => {
+                    const next = e.target.value as "fr" | "en";
+                    if (next === locale) return;
+                    setConfig({ ...config, locale: next });
+                    startLocaleTransition(() => {
+                      router.replace(pathname, { locale: next });
+                      router.refresh();
+                    });
+                  }}
                 >
-                  <option value="fr">Français</option>
-                  <option value="en">English</option>
+                  <option value="fr">{t("identity.langFr")}</option>
+                  <option value="en">{t("identity.langEn")}</option>
                 </select>
               </div>
             </CardBody>
@@ -311,10 +345,12 @@ export function AdminClient() {
 
         {tab === "theme" ? (
           <Card>
-            <CardHeader title="Thème dynamique" subtitle="Variables CSS appliquées en direct." />
+            <CardHeader title={tTheme("cardTitle")} subtitle={tTheme("cardSubtitle")} />
             <CardBody className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Mode</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {tTheme("mode")}
+                </label>
                 <select
                   className="mt-2 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2.5 text-sm text-[var(--rp-fg)]"
                   value={config.theme.mode}
@@ -328,13 +364,15 @@ export function AdminClient() {
                     })
                   }
                 >
-                  <option value="dark">Sombre</option>
-                  <option value="light">Clair</option>
-                  <option value="system">Système</option>
+                  <option value="dark">{tTheme("modeDark")}</option>
+                  <option value="light">{tTheme("modeLight")}</option>
+                  <option value="system">{tTheme("modeSystem")}</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Layout</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {tTheme("layout")}
+                </label>
                 <select
                   className="mt-2 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2.5 text-sm text-[var(--rp-fg)]"
                   value={config.theme.layout}
@@ -348,12 +386,14 @@ export function AdminClient() {
                     })
                   }
                 >
-                  <option value="wide">Wide</option>
-                  <option value="boxed">Boxed</option>
+                  <option value="wide">{tTheme("layoutWide")}</option>
+                  <option value="boxed">{tTheme("layoutBoxed")}</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Rayon</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {tTheme("radius")}
+                </label>
                 <select
                   className="mt-2 w-full rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/25 px-3 py-2.5 text-sm text-[var(--rp-fg)]"
                   value={config.theme.radius}
@@ -374,7 +414,7 @@ export function AdminClient() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                  Opacité overlay hero (0–1)
+                  {tTheme("heroOverlay")}
                 </label>
                 <Input
                   className="mt-2"
@@ -396,7 +436,7 @@ export function AdminClient() {
               </div>
               <div className="md:col-span-2">
                 <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                  Image hero (URL)
+                  {tTheme("heroImage")}
                 </label>
                 <Input
                   className="mt-2"
@@ -420,23 +460,25 @@ export function AdminClient() {
                     })
                   }
                 />
-                Overlay bruit (premium)
+                {tTheme("noiseOverlay")}
               </label>
 
               {(
                 [
-                  ["primary", "Primaire"],
-                  ["secondary", "Secondaire"],
-                  ["accent", "Accent"],
-                  ["background", "Fond"],
-                  ["surface", "Surface"],
-                  ["muted", "Muted"],
-                  ["border", "Bordure"],
-                  ["foreground", "Texte"],
+                  ["primary", "colorPrimary"],
+                  ["secondary", "colorSecondary"],
+                  ["accent", "colorAccent"],
+                  ["background", "colorBackground"],
+                  ["surface", "colorSurface"],
+                  ["muted", "colorMuted"],
+                  ["border", "colorBorder"],
+                  ["foreground", "colorForeground"],
                 ] as const
-              ).map(([k, label]) => (
+              ).map(([k, labelKey]) => (
                 <div key={k}>
-                  <label className="text-xs font-semibold text-[var(--rp-muted)]">{label}</label>
+                  <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                    {tTheme(labelKey)}
+                  </label>
                   <div className="mt-2 flex items-center gap-3">
                     <input
                       type="color"
@@ -474,7 +516,7 @@ export function AdminClient() {
 
         {tab === "modules" ? (
           <Card>
-            <CardHeader title="Modules" subtitle="Activez / désactivez des sections du template." />
+            <CardHeader title={t("modulesCard.title")} subtitle={t("modulesCard.subtitle")} />
             <CardBody className="grid gap-3 md:grid-cols-2">
               {(Object.keys(config.modules) as Array<keyof SiteConfig["modules"]>).map((k) => (
                 <label
@@ -482,7 +524,7 @@ export function AdminClient() {
                   className="flex items-center justify-between gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-3 py-2 text-sm text-[var(--rp-fg)]"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block font-medium">{MODULE_LABELS[k]}</span>
+                    <span className="block font-medium">{tMod(k)}</span>
                     <span className="mt-0.5 block font-mono text-[10px] text-[var(--rp-muted)]">{k}</span>
                   </span>
                   <input
@@ -503,7 +545,7 @@ export function AdminClient() {
 
         {tab === "nav" ? (
           <Card>
-            <CardHeader title="Navigation" />
+            <CardHeader title={t("nav.title")} />
             <CardBody className="space-y-4">
               {config.nav.map((item, idx) => (
                 <div
@@ -511,7 +553,9 @@ export function AdminClient() {
                   className="grid gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 p-4 md:grid-cols-12 md:items-end"
                 >
                   <div className="md:col-span-3">
-                    <label className="text-xs font-semibold text-[var(--rp-muted)]">Label</label>
+                    <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                      {t("nav.label")}
+                    </label>
                     <Input
                       className="mt-2"
                       value={item.label}
@@ -519,7 +563,9 @@ export function AdminClient() {
                     />
                   </div>
                   <div className="md:col-span-4">
-                    <label className="text-xs font-semibold text-[var(--rp-muted)]">Href</label>
+                    <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                      {t("nav.href")}
+                    </label>
                     <Input
                       className="mt-2"
                       value={item.href}
@@ -527,7 +573,9 @@ export function AdminClient() {
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="text-xs font-semibold text-[var(--rp-muted)]">Id (stable)</label>
+                    <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                      {t("nav.idStable")}
+                    </label>
                     <Input className="mt-2" value={item.id} readOnly />
                   </div>
                   <label className="flex items-center gap-2 text-sm text-[var(--rp-fg)] md:col-span-2">
@@ -536,7 +584,7 @@ export function AdminClient() {
                       checked={item.enabled}
                       onChange={(e) => updateNavItem(idx, { enabled: e.target.checked })}
                     />
-                    Actif
+                    {t("nav.enabled")}
                   </label>
                 </div>
               ))}
@@ -554,10 +602,7 @@ export function AdminClient() {
 
         {tab === "forum-cats" ? (
           <Card>
-            <CardHeader
-              title="Catégories du forum"
-              subtitle="Créez, renommez et restreignez l’accès des catégories. Les catégories privées n’apparaissent qu’aux rôles autorisés."
-            />
+            <CardHeader title={t("forumCatsCard.title")} subtitle={t("forumCatsCard.subtitle")} />
             <CardBody>
               <AdminForumCategoriesTab />
             </CardBody>
@@ -565,15 +610,13 @@ export function AdminClient() {
         ) : null}
 
         {tab === "extensions" ? <AdminExtensionsTab /> : null}
+        {tab === "listing" ? <ListingPrepPanel /> : null}
 
         {tab === "support" ? <AdminSupportTab /> : null}
 
         {tab === "forum-logs" ? (
           <Card>
-            <CardHeader
-              title="Logs du forum"
-              subtitle="Historique des publications, modifications, suppressions et actions de modération. Inclut un export complet du forum (catégories, sujets, logs, notifications)."
-            />
+            <CardHeader title={t("forumLogsCard.title")} subtitle={t("forumLogsCard.subtitle")} />
             <CardBody>
               <AdminForumLogsTab />
             </CardBody>
@@ -582,10 +625,7 @@ export function AdminClient() {
 
         {tab === "forms" ? (
           <Card>
-            <CardHeader
-              title="Formulaires (JSON)"
-              subtitle="Édition avancée : whitelist / staff / business. Validé au parse."
-            />
+            <CardHeader title={t("forms.title")} subtitle={t("forms.subtitle")} />
             <CardBody>
               <Textarea
                 value={formsDraft}
@@ -600,29 +640,21 @@ export function AdminClient() {
                 }}
                 className="min-h-[320px] font-mono text-xs"
               />
-              <div className="mt-3 text-xs text-[var(--rp-muted)]">
-                Astuce : gardez la structure {`{ whitelist: FormField[], staff: … }`}. Un JSON
-                invalide ne s applique pas tant que le parse échoue pendant la frappe.
-              </div>
+              <div className="mt-3 text-xs text-[var(--rp-muted)]">{t("forms.hint")}</div>
             </CardBody>
           </Card>
         ) : null}
 
         {tab === "integrations" ? (
           <Card>
-            <CardHeader
-              title="OAuth, Steam & Tebex"
-              subtitle="Activez l’affichage des boutons et saisissez directement les clés serveur depuis ce panneau."
-            />
+            <CardHeader title={t("integrations.title")} subtitle={t("integrations.subtitle")} />
             <CardBody className="space-y-6">
               <div>
                 <h3 className="text-sm font-semibold text-[var(--rp-fg)]">
-                  Clés serveur (Discord & Steam)
+                  {t("integrations.serverKeysTitle")}
                 </h3>
                 <p className="mt-1 text-xs text-[var(--rp-muted)]">
-                  Saisissez les identifiants directement ici : ils sont écrits dans un fichier{" "}
-                  <span className="font-mono">.runtime/auth-config.json</span> côté serveur (hors
-                  git) et lus en priorité par les routes <span className="font-mono">/api/auth/*</span>.
+                  {t("integrations.serverKeysBody")}
                 </p>
                 <div className="mt-3">
                   <AuthSecretsEditor />
@@ -630,9 +662,11 @@ export function AdminClient() {
               </div>
 
               <div className="space-y-3 border-t border-[var(--rp-border)] pt-6">
-              <h3 className="text-sm font-semibold text-[var(--rp-fg)]">Affichage public & Tebex</h3>
+              <h3 className="text-sm font-semibold text-[var(--rp-fg)]">
+                {t("integrations.publicTitle")}
+              </h3>
               <label className="flex items-center justify-between gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-3 py-2 text-sm text-[var(--rp-fg)]">
-                <span>Bouton connexion Discord</span>
+                <span>{t("integrations.discordBtn")}</span>
                 <input
                   type="checkbox"
                   checked={config.integrations.discordOAuth.enabled}
@@ -648,7 +682,7 @@ export function AdminClient() {
                 />
               </label>
               <label className="flex items-center justify-between gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-3 py-2 text-sm text-[var(--rp-fg)]">
-                <span>Bouton connexion Steam (OpenID)</span>
+                <span>{t("integrations.steamBtn")}</span>
                 <input
                   type="checkbox"
                   checked={config.integrations.steamOpenId.enabled}
@@ -665,12 +699,12 @@ export function AdminClient() {
               </label>
               <div>
                 <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                  URL de base Tebex
+                  {t("integrations.tebexBase")}
                 </label>
                 <Input
                   className="mt-2"
                   value={config.integrations.tebex.storeBaseUrl}
-                  placeholder="https://votre-boutique.tebex.io"
+                  placeholder={t("integrations.tebexPlaceholder")}
                   onChange={(e) =>
                     setConfig({
                       ...config,
@@ -686,7 +720,7 @@ export function AdminClient() {
                 />
               </div>
               <label className="flex items-center justify-between gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-3 py-2 text-sm text-[var(--rp-fg)]">
-                <span>Générer liens /package/{`{id}`} si absent du produit</span>
+                <span>{t("integrations.tebexGenLinks")}</span>
                 <input
                   type="checkbox"
                   checked={config.integrations.tebex.enableGeneratedPackageLinks}
@@ -705,13 +739,7 @@ export function AdminClient() {
                 />
               </label>
               <p className="text-xs leading-relaxed text-[var(--rp-muted)]">
-                Si vous préférez l’ancienne méthode : variables d’environnement{" "}
-                <span className="font-mono">AUTH_SECRET</span>,{" "}
-                <span className="font-mono">DISCORD_CLIENT_ID</span>,{" "}
-                <span className="font-mono">DISCORD_CLIENT_SECRET</span>,{" "}
-                <span className="font-mono">DISCORD_REDIRECT_URI</span> (sinon dérivé de
-                l’origine). Discord Developer Portal : URL de callback ={" "}
-                <span className="font-mono">/api/auth/discord/callback</span>.
+                {t("integrations.envHint")}
               </p>
               </div>
             </CardBody>
@@ -720,7 +748,7 @@ export function AdminClient() {
 
         {tab === "io" ? (
           <Card>
-            <CardHeader title="Import / Export" />
+            <CardHeader title={t("io.title")} />
             <CardBody className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -735,10 +763,10 @@ export function AdminClient() {
                     URL.revokeObjectURL(url);
                   }}
                 >
-                  Télécharger JSON
+                  {t("io.downloadJson")}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => persist()}>
-                  Forcer la sauvegarde maintenant
+                  {t("io.forceSave")}
                 </Button>
                 <Button
                   type="button"
@@ -748,17 +776,19 @@ export function AdminClient() {
                     setImportText(JSON.stringify(merged, null, 2));
                   }}
                 >
-                  Préremplir (export complet)
+                  {t("io.prefill")}
                 </Button>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Importer</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                  {t("io.importLabel")}
+                </label>
                 <Textarea
                   className="mt-2 min-h-[260px] font-mono text-xs"
                   value={importText}
                   onChange={(e) => setImportText(e.target.value)}
-                  placeholder="Collez un JSON complet ou partiel…"
+                  placeholder={t("io.importPlaceholder")}
                 />
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
@@ -772,10 +802,10 @@ export function AdminClient() {
                       setImportErr(null);
                     }}
                   >
-                    Appliquer & persister
+                    {t("io.apply")}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setImportText("")}>
-                    Vider
+                    {t("io.clear")}
                   </Button>
                 </div>
                 {importErr ? (

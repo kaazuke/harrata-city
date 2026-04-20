@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import {
   clearMessages,
   deleteMessage,
   readMessages,
-  SUPPORT_STATUS_LABELS,
   supportChannel,
   updateMessageStatus,
   type SupportMessage,
@@ -21,9 +21,14 @@ const STATUS_TONE: Record<SupportStatus, string> = {
 };
 
 export function AdminSupportTab() {
+  const t = useTranslations("admin.support");
+  const locale = useLocale();
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [tick, setTick] = useState(0);
   const [filter, setFilter] = useState<SupportStatus | "all">("all");
+
+  const statusBadge = (s: SupportStatus) =>
+    s === "new" ? t("badgeNew") : s === "read" ? t("badgeRead") : t("badgeResolved");
 
   useEffect(() => {
     setMessages(readMessages());
@@ -59,32 +64,38 @@ export function AdminSupportTab() {
   }
 
   function remove(id: string) {
-    if (!confirm("Supprimer ce message ?")) return;
+    if (!confirm(t("deleteOne"))) return;
     deleteMessage(id);
     setTick((t) => t + 1);
   }
 
   function clearAll() {
-    if (!confirm("Supprimer TOUS les messages support ?")) return;
+    if (!confirm(t("clearAll"))) return;
     clearMessages();
     setTick((t) => t + 1);
   }
 
+  const emptyFilterLabel =
+    filter === "all"
+      ? ""
+      : filter === "new"
+        ? t("badgeNew")
+        : filter === "read"
+          ? t("badgeRead")
+          : t("badgeResolved");
+
   return (
     <Card>
-      <CardHeader
-        title="Messages de support"
-        subtitle="Messages envoyés depuis la page Contact. Données locales à ce navigateur, synchronisées entre vos onglets."
-      />
+      <CardHeader title={t("title")} subtitle={t("subtitle")} />
       <CardBody className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2">
             {(
               [
-                ["all", `Tous (${stats.total})`],
-                ["new", `Nouveaux (${stats.new})`],
-                ["read", `Lus (${stats.read})`],
-                ["resolved", `Résolus (${stats.resolved})`],
+                ["all", t("filterAll", { count: stats.total })],
+                ["new", t("filterNew", { count: stats.new })],
+                ["read", t("filterRead", { count: stats.read })],
+                ["resolved", t("filterResolved", { count: stats.resolved })],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -102,18 +113,18 @@ export function AdminSupportTab() {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="ghost" onClick={() => setTick((t) => t + 1)}>
-              Rafraîchir
+            <Button type="button" variant="ghost" onClick={() => setTick((x) => x + 1)}>
+              {t("refresh")}
             </Button>
             <Button type="button" variant="ghost" onClick={clearAll}>
-              Vider
+              {t("clearAllBtn")}
             </Button>
           </div>
         </div>
 
         {filtered.length === 0 ? (
           <p className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-3 py-6 text-center text-sm text-[var(--rp-muted)]">
-            Aucun message {filter === "all" ? "" : `« ${SUPPORT_STATUS_LABELS[filter as SupportStatus].toLowerCase()} »`} pour le moment.
+            {filter === "all" ? t("empty") : t("emptyFiltered", { status: emptyFilterLabel })}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -136,10 +147,10 @@ export function AdminSupportTab() {
                           color: STATUS_TONE[m.status],
                         }}
                       >
-                        {SUPPORT_STATUS_LABELS[m.status]}
+                        {statusBadge(m.status)}
                       </span>
                       <span className="text-[var(--rp-muted)]">
-                        {new Date(m.createdAt).toLocaleString("fr-FR", {
+                        {new Date(m.createdAt).toLocaleString(locale, {
                           day: "2-digit",
                           month: "2-digit",
                           hour: "2-digit",
@@ -147,20 +158,16 @@ export function AdminSupportTab() {
                         })}
                       </span>
                       <span className="text-[var(--rp-muted)]">
-                        par{" "}
-                        <span className="font-mono text-[var(--rp-fg)]">
-                          {m.authorName}
-                        </span>
+                        {t("by")}{" "}
+                        <span className="font-mono text-[var(--rp-fg)]">{m.authorName}</span>
                         {m.authorId ? null : (
                           <span className="ml-1 rounded-full border border-white/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-[var(--rp-muted)]">
-                            anonyme
+                            {t("anonymous")}
                           </span>
                         )}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm font-semibold text-[var(--rp-fg)]">
-                      {m.subject}
-                    </p>
+                    <p className="mt-2 text-sm font-semibold text-[var(--rp-fg)]">{m.subject}</p>
                     <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--rp-muted)]">
                       {m.message}
                     </p>
@@ -176,7 +183,7 @@ export function AdminSupportTab() {
                       disabled={m.status === s}
                       className="rounded-full border border-[var(--rp-border)] px-2.5 py-1 text-[10px] font-semibold text-[var(--rp-muted)] hover:bg-white/5 disabled:cursor-default disabled:opacity-50"
                     >
-                      → {SUPPORT_STATUS_LABELS[s]}
+                      → {statusBadge(s)}
                     </button>
                   ))}
                   <button
@@ -184,7 +191,7 @@ export function AdminSupportTab() {
                     onClick={() => remove(m.id)}
                     className="ml-auto rounded-full border border-[color-mix(in_oklab,var(--rp-danger)_45%,var(--rp-border))] px-2.5 py-1 text-[10px] font-semibold text-[var(--rp-danger)] hover:bg-[color-mix(in_oklab,var(--rp-danger)_10%,transparent)]"
                   >
-                    Supprimer
+                    {t("delete")}
                   </button>
                 </div>
               </li>

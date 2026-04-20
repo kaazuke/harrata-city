@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useAccount } from "@/components/providers/AccountProvider";
+import { formatAccountError } from "@/lib/account/format-account-error";
+import type { AccountFailure } from "@/lib/account/account-error-keys";
 import { PageHero } from "@/components/layout/PageHero";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -14,6 +16,9 @@ import { OAuthButtons } from "@/components/account/OAuthButtons";
 export function SignupClient() {
   const router = useRouter();
   const { register, accounts, ready } = useAccount();
+  const t = useTranslations("authPages.signup");
+  const tPages = useTranslations("authPages");
+  const te = useTranslations("accountErrors");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -24,14 +29,14 @@ export function SignupClient() {
     e.preventDefault();
     setErr(null);
     if (password !== confirm) {
-      setErr("Les mots de passe ne correspondent pas.");
+      setErr(t("passwordMismatch"));
       return;
     }
     setBusy(true);
     const r = await register(username, password);
     setBusy(false);
     if (!r.ok) {
-      setErr(r.error);
+      setErr(formatAccountError(te, r as AccountFailure));
       return;
     }
     router.push("/compte");
@@ -40,15 +45,16 @@ export function SignupClient() {
   return (
     <div>
       <PageHero
-        eyebrow="Communauté"
-        title="Créer un compte"
-        subtitle="Pseudo + mot de passe. Le premier compte créé devient automatiquement administrateur."
+        eyebrow={tPages("communityEyebrow")}
+        title={tPages("signupTitle")}
+        subtitle={t("subtitle")}
       />
       <div className="mx-auto max-w-md px-4 py-10">
         {ready && accounts.length === 0 ? (
           <p className="mb-4 rounded-[var(--rp-radius)] border border-[color-mix(in_oklab,var(--rp-primary)_45%,var(--rp-border))] bg-[color-mix(in_oklab,var(--rp-primary)_10%,transparent)] px-4 py-3 text-xs text-[var(--rp-fg)]">
-            Aucun compte n’existe encore : votre inscription créera le compte
-            <span className="font-semibold"> administrateur</span> du site.
+            {t("firstAdminHintBefore")}
+            <span className="font-semibold">{t("firstAdminHintBold")}</span>
+            {t("firstAdminHintAfter")}
           </p>
         ) : null}
         <Card>
@@ -57,13 +63,13 @@ export function SignupClient() {
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-[var(--rp-border)]" />
               <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                ou
+                {t("divider")}
               </span>
               <div className="h-px flex-1 bg-[var(--rp-border)]" />
             </div>
             <form className="space-y-4" onSubmit={submit}>
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Pseudo</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("username")}</label>
                 <Input
                   className="mt-2"
                   value={username}
@@ -74,12 +80,10 @@ export function SignupClient() {
                   pattern="[A-Za-z0-9_-]+"
                   placeholder="ex. astra_77"
                 />
-                <p className="mt-1 text-[11px] text-[var(--rp-muted)]">
-                  3 à 24 caractères. Lettres, chiffres, tiret, underscore.
-                </p>
+                <p className="mt-1 text-[11px] text-[var(--rp-muted)]">{t("usernameHint")}</p>
               </div>
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Mot de passe</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("password")}</label>
                 <Input
                   className="mt-2"
                   type="password"
@@ -90,7 +94,7 @@ export function SignupClient() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Confirmation</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("confirm")}</label>
                 <Input
                   className="mt-2"
                   type="password"
@@ -101,19 +105,16 @@ export function SignupClient() {
               </div>
               {err ? <p className="text-xs text-[var(--rp-danger)]">{err}</p> : null}
               <Button type="submit" disabled={busy} className="w-full">
-                {busy ? "Création…" : "Créer mon compte"}
+                {busy ? t("submitBusy") : t("submit")}
               </Button>
               <p className="text-center text-xs text-[var(--rp-muted)]">
-                Déjà inscrit ?{" "}
+                {t("hasAccount")}{" "}
                 <Link href="/connexion" className="font-semibold text-[var(--rp-primary)] hover:underline">
-                  Se connecter
+                  {t("loginLink")}
                 </Link>
               </p>
             </form>
-            <p className="mt-4 text-[11px] leading-relaxed text-[var(--rp-muted)]">
-              Stockage 100% local (navigateur). Les mots de passe sont hashés (SHA-256 + salt) mais
-              ce système est destiné à des sites de communauté locale, pas à des données sensibles.
-            </p>
+            <p className="mt-4 text-[11px] leading-relaxed text-[var(--rp-muted)]">{t("disclaimer")}</p>
           </CardBody>
         </Card>
       </div>

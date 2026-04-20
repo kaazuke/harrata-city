@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
@@ -22,6 +22,7 @@ export function NotificationBell() {
   const { user, findByUsername } = useAccount();
   const { config, setConfig, persist } = useSiteConfig();
   const t = useTranslations("forum.notifications");
+  const locale = useLocale();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
@@ -194,7 +195,7 @@ export function NotificationBell() {
                             </p>
                           ) : null}
                           <div className="mt-1 text-[10px] uppercase tracking-wider text-[var(--rp-muted)]">
-                            {formatForumRelative(n.createdAt)}
+                            {formatForumRelative(n.createdAt, locale)}
                             {!n.read ? (
                               <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--rp-primary)]" />
                             ) : null}

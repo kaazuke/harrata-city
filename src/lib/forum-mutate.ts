@@ -1,8 +1,8 @@
 import type { ForumReply, ForumTopic, SiteConfig } from "@/config/types";
 
-export function formatForumDate(iso: string) {
+export function formatForumDate(iso: string, locale = "fr") {
   try {
-    return new Date(iso).toLocaleString("fr-FR", {
+    return new Date(iso).toLocaleString(locale, {
       dateStyle: "medium",
       timeStyle: "short",
     });
@@ -11,20 +11,24 @@ export function formatForumDate(iso: string) {
   }
 }
 
-export function formatForumRelative(iso: string): string {
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return iso;
-  const diff = Math.max(0, Date.now() - t);
-  const m = Math.floor(diff / 60_000);
-  if (m < 1) return "à l’instant";
-  if (m < 60) return `il y a ${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `il y a ${h} h`;
-  const d = Math.floor(h / 24);
-  if (d < 30) return `il y a ${d} j`;
-  const mo = Math.floor(d / 30);
-  if (mo < 12) return `il y a ${mo} mois`;
-  return `il y a ${Math.floor(mo / 12)} an(s)`;
+/** Relative time using the UI locale (pass `useLocale()` from next-intl). */
+export function formatForumRelative(iso: string, locale = "fr"): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return iso;
+  const diffSec = Math.round((then - Date.now()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const ad = Math.abs(diffSec);
+  if (ad < 60) return rtf.format(diffSec, "second");
+  const diffMin = diffSec / 60;
+  if (Math.abs(diffMin) < 60) return rtf.format(Math.round(diffMin), "minute");
+  const diffHour = diffMin / 60;
+  if (Math.abs(diffHour) < 24) return rtf.format(Math.round(diffHour), "hour");
+  const diffDay = diffHour / 24;
+  if (Math.abs(diffDay) < 30) return rtf.format(Math.round(diffDay), "day");
+  const diffMonth = diffDay / 30;
+  if (Math.abs(diffMonth) < 12) return rtf.format(Math.round(diffMonth), "month");
+  const diffYear = diffDay / 365;
+  return rtf.format(Math.round(diffYear), "year");
 }
 
 export function topicUpdatedAt(t: ForumTopic): string {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
@@ -49,6 +50,7 @@ export function ForumTopicClient() {
   const { config } = useLocalizedConfig();
   const { user, roleDef, hasPermission, findByUsername } = useAccount();
   const t = useTranslations("forum.topic");
+  const locale = useLocale();
   const canModerate = hasPermission("forum.moderate");
   const canReply = hasPermission("forum.reply");
   const categories = Array.isArray(config.forumCategories)
@@ -206,9 +208,9 @@ export function ForumTopicClient() {
     setTimeout(() => replyRef.current?.focus(), 50);
   }
 
-  const subtitle = `${t("by", { author: topic.author })} · ${formatForumDate(topic.createdAt)}${
+  const subtitle = `${t("by", { author: topic.author })} · ${formatForumDate(topic.createdAt, locale)}${
     topic.replies.length
-      ? t("lastActivity", { time: formatForumRelative(topicUpdatedAt(topic)) })
+      ? t("lastActivity", { time: formatForumRelative(topicUpdatedAt(topic), locale) })
       : ""
   }`;
 
@@ -502,6 +504,7 @@ function PostBlock({
   onSaveEdit?: () => void;
   labels: { save: string; cancel: string };
 }) {
+  const locale = useLocale();
   const display = authorAccount?.profile.displayName || author;
   const accent = authorAccount?.profile.color;
   return (
@@ -534,7 +537,7 @@ function PostBlock({
 
         <div className="flex flex-col">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--rp-border)] px-5 py-2.5 text-xs text-[var(--rp-muted)]">
-            <span title={createdAt}>{formatForumDate(createdAt)}</span>
+            <span title={createdAt}>{formatForumDate(createdAt, locale)}</span>
             {isOriginal ? <Badge tone="neutral">#1</Badge> : <Badge tone="neutral">#{(index ?? 1) + 1}</Badge>}
           </div>
           <div className="px-5 py-5">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { Badge } from "@/components/ui/Badge";
@@ -10,6 +11,7 @@ import type { ForumCategory } from "@/config/types";
 import { roleHasPermission } from "@/lib/account/types";
 
 export function AdminForumCategoriesTab() {
+  const t = useTranslations("admin.forumCategories");
   const { config, setConfig, persist } = useSiteConfig();
   const { roles } = useAccount();
   const categories = useMemo<ForumCategory[]>(
@@ -49,8 +51,8 @@ export function AdminForumCategoriesTab() {
     const id = `cat_${Date.now().toString(36)}`;
     const newCat: ForumCategory = {
       id,
-      title: "Nouvelle catégorie",
-      description: "Décrivez le but de cette catégorie.",
+      title: t("newTitle"),
+      description: t("newDesc"),
     };
     const next = { ...config, forumCategories: [...categories, newCat] };
     setConfig(next);
@@ -58,11 +60,7 @@ export function AdminForumCategoriesTab() {
   }
 
   function removeCategory(id: string) {
-    if (
-      !confirm(
-        "Supprimer cette catégorie ? Les sujets qu’elle contient resteront en base mais deviendront orphelins.",
-      )
-    ) {
+    if (!confirm(t("deleteConfirm"))) {
       return;
     }
     const next = {
@@ -77,28 +75,23 @@ export function AdminForumCategoriesTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-[var(--rp-fg)]">
-            Catégories du forum
-          </h2>
+          <h2 className="text-base font-semibold text-[var(--rp-fg)]">{t("title")}</h2>
           <p className="mt-1 text-xs text-[var(--rp-muted)]">
-            Renommez, décrivez et restreignez l’accès. {categories.length} catégorie
-            {categories.length > 1 ? "s" : ""}.
+            {t("subtitle", { count: categories.length })}
           </p>
         </div>
         <Button type="button" onClick={addCategory}>
-          + Nouvelle catégorie
+          {t("add")}
         </Button>
       </div>
 
       <p className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/15 px-3 py-2 text-[11px] text-[var(--rp-muted)]">
-        Les rôles disposant de la permission{" "}
-        <span className="font-mono">forum.access_private</span> peuvent voir{" "}
-        <em>toutes</em> les catégories privées, en plus de celles cochées ci-dessous.
+        {t("privateHint")}
       </p>
 
       {categories.length === 0 ? (
         <p className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-4 py-6 text-sm text-[var(--rp-muted)]">
-          Aucune catégorie pour le moment.
+          {t("empty")}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -113,7 +106,7 @@ export function AdminForumCategoriesTab() {
                 <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
                   <div>
                     <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                      Titre
+                      {t("fieldTitle")}
                     </label>
                     <Input
                       className="mt-1"
@@ -123,7 +116,7 @@ export function AdminForumCategoriesTab() {
                   </div>
                   <div>
                     <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                      Couleur d’accent (optionnel)
+                      {t("accentColor")}
                     </label>
                     <Input
                       className="mt-1"
@@ -138,16 +131,16 @@ export function AdminForumCategoriesTab() {
                   </div>
                   <div className="flex items-center gap-2">
                     {isPrivate ? (
-                      <Badge tone="warning">Privée</Badge>
+                      <Badge tone="warning">{t("privateLabel")}</Badge>
                     ) : (
-                      <Badge tone="neutral">Publique</Badge>
+                      <Badge tone="neutral">{t("publicLabel")}</Badge>
                     )}
                   </div>
                 </div>
 
                 <div className="mt-3">
                   <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                    Description
+                    {t("fieldDesc")}
                   </label>
                   <Input
                     className="mt-1"
@@ -159,7 +152,7 @@ export function AdminForumCategoriesTab() {
                 <div className="mt-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                      Accès supplémentaire (rôles autorisés)
+                      {t("accessExtra")}
                     </span>
                     {isPrivate ? (
                       <button
@@ -167,7 +160,7 @@ export function AdminForumCategoriesTab() {
                         onClick={() => clearRestriction(c.id)}
                         className="text-[11px] font-semibold text-[var(--rp-muted)] hover:underline"
                       >
-                        Rendre publique
+                        {t("makePublic")}
                       </button>
                     ) : null}
                   </div>
@@ -183,11 +176,7 @@ export function AdminForumCategoriesTab() {
                               ? "border-[color-mix(in_oklab,var(--rp-primary)_55%,var(--rp-border))] bg-white/10 text-[var(--rp-fg)]"
                               : "border-[var(--rp-border)] text-[var(--rp-muted)] hover:bg-white/5"
                           }`}
-                          title={
-                            auto
-                              ? `${r.label} a la permission forum.access_private — accès auto.`
-                              : undefined
-                          }
+                          title={auto ? t("autoAccessHint", { label: r.label }) : undefined}
                         >
                           <input
                             type="checkbox"
@@ -216,7 +205,7 @@ export function AdminForumCategoriesTab() {
                     variant="ghost"
                     onClick={() => removeCategory(c.id)}
                   >
-                    Supprimer
+                    {t("delete")}
                   </Button>
                 </div>
               </li>

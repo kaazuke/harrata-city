@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import {
   buildSummary,
@@ -13,6 +14,7 @@ import {
  * l'extension `analytics-pageviews` est installée.
  */
 export function AnalyticsDashboard() {
+  const t = useTranslations("admin.analytics");
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [tick, setTick] = useState(0);
 
@@ -28,44 +30,40 @@ export function AnalyticsDashboard() {
     <div className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/15 p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h4 className="text-sm font-semibold text-[var(--rp-fg)]">
-            Analytics — vues de pages
-          </h4>
-          <p className="mt-0.5 text-[11px] text-[var(--rp-muted)]">
-            Données strictement locales à ce navigateur (aucun envoi serveur).
-          </p>
+          <h4 className="text-sm font-semibold text-[var(--rp-fg)]">{t("title")}</h4>
+          <p className="mt-0.5 text-[11px] text-[var(--rp-muted)]">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
-          <Button type="button" variant="ghost" onClick={() => setTick((t) => t + 1)}>
-            Rafraîchir
+          <Button type="button" variant="ghost" onClick={() => setTick((x) => x + 1)}>
+            {t("refresh")}
           </Button>
           <Button
             type="button"
             variant="ghost"
             onClick={() => {
-              if (!confirm("Effacer toutes les données analytics ?")) return;
+              if (!confirm(t("confirmClear"))) return;
               clearAnalytics();
-              setTick((t) => t + 1);
+              setTick((x) => x + 1);
             }}
           >
-            Réinitialiser
+            {t("reset")}
           </Button>
         </div>
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2">
-        <Stat label="Vues totales" value={summary.totalViews} />
-        <Stat label="Sessions" value={summary.uniqueSessions} />
-        <Stat label="24h" value={summary.last24h} />
+        <Stat label={t("totalViews")} value={summary.totalViews} />
+        <Stat label={t("sessions")} value={summary.uniqueSessions} />
+        <Stat label={t("hours24")} value={summary.last24h} />
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-            Top pages
+            {t("topPages")}
           </p>
           {summary.topPages.length === 0 ? (
-            <p className="text-xs text-[var(--rp-muted)]">Aucune vue enregistrée.</p>
+            <p className="text-xs text-[var(--rp-muted)]">{t("emptyViews")}</p>
           ) : (
             <ul className="space-y-1">
               {summary.topPages.map((p) => (
@@ -74,9 +72,7 @@ export function AnalyticsDashboard() {
                   className="flex items-center justify-between gap-2 rounded border border-white/5 bg-black/20 px-2 py-1 text-xs"
                 >
                   <span className="truncate font-mono text-[var(--rp-fg)]">{p.path}</span>
-                  <span className="shrink-0 tabular-nums text-[var(--rp-muted)]">
-                    {p.count}
-                  </span>
+                  <span className="shrink-0 tabular-nums text-[var(--rp-muted)]">{p.count}</span>
                 </li>
               ))}
             </ul>
@@ -85,7 +81,7 @@ export function AnalyticsDashboard() {
 
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-            14 derniers jours
+            {t("last14Days")}
           </p>
           {summary.daily.length === 0 ? (
             <p className="text-xs text-[var(--rp-muted)]">—</p>
@@ -95,15 +91,13 @@ export function AnalyticsDashboard() {
                 <div
                   key={d.day}
                   className="flex flex-1 flex-col items-center gap-1"
-                  title={`${d.day} : ${d.count} vues`}
+                  title={t("viewsOnDay", { day: d.day, count: d.count })}
                 >
                   <div
                     className="w-full rounded-sm bg-[var(--rp-primary)] transition-[height]"
                     style={{ height: `${Math.max((d.count / maxDay) * 100, 4)}%` }}
                   />
-                  <span className="text-[8px] text-[var(--rp-muted)]">
-                    {d.day.slice(5)}
-                  </span>
+                  <span className="text-[8px] text-[var(--rp-muted)]">{d.day.slice(5)}</span>
                 </div>
               ))}
             </div>

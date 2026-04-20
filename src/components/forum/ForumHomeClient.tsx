@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
 import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
@@ -19,6 +19,7 @@ export function ForumHomeClient() {
   const { config } = useLocalizedConfig();
   const { findByUsername, roleDef } = useAccount();
   const t = useTranslations("forum.home");
+  const locale = useLocale();
   const allCategories = Array.isArray(config.forumCategories)
     ? config.forumCategories
     : defaultSiteConfig.forumCategories;
@@ -136,7 +137,7 @@ export function ForumHomeClient() {
                               {stats.last.title}
                             </div>
                             <div className="text-[11px] text-[var(--rp-muted)]">
-                              {stats.last.author} · {formatForumRelative(stats.last.updatedAt ?? stats.last.createdAt)}
+                              {stats.last.author} · {formatForumRelative(stats.last.updatedAt ?? stats.last.createdAt, locale)}
                             </div>
                           </div>
                           {stats.last.pinned ? (

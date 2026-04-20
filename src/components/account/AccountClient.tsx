@@ -1,9 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useAccount } from "@/components/providers/AccountProvider";
+import { formatAccountError } from "@/lib/account/format-account-error";
+import type { AccountFailure } from "@/lib/account/account-error-keys";
 import { PageHero } from "@/components/layout/PageHero";
 import { Avatar } from "@/components/account/Avatar";
 import { AvatarPicker } from "@/components/account/AvatarPicker";
@@ -23,6 +26,12 @@ export function AccountClient() {
     logout,
     hasPermission,
   } = useAccount();
+  const t = useTranslations("authPages.account");
+  const tPages = useTranslations("authPages");
+  const te = useTranslations("accountErrors");
+  const locale = useLocale();
+  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
+
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [color, setColor] = useState("#7aa2f7");
@@ -50,7 +59,7 @@ export function AccountClient() {
   if (!ready) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center text-sm text-[var(--rp-muted)]">
-        Chargement…
+        {t("loading")}
       </div>
     );
   }
@@ -58,21 +67,19 @@ export function AccountClient() {
   if (!user) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <h1 className="font-heading text-xl font-semibold text-[var(--rp-fg)]">
-          Vous n’êtes pas connecté
-        </h1>
+        <h1 className="font-heading text-xl font-semibold text-[var(--rp-fg)]">{t("notSignedInTitle")}</h1>
         <div className="mt-4 flex justify-center gap-3">
           <Link
             href="/connexion"
             className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-[var(--rp-fg)] hover:bg-white/10"
           >
-            Connexion
+            {t("login")}
           </Link>
           <Link
             href="/inscription"
             className="rounded-full bg-[var(--rp-primary)] px-4 py-2 text-sm font-semibold text-[#041016] hover:brightness-110"
           >
-            Créer un compte
+            {t("signup")}
           </Link>
         </div>
       </div>
@@ -92,8 +99,8 @@ export function AccountClient() {
     });
     setProfileMsg(
       r.ok
-        ? { ok: true, text: "Profil enregistré." }
-        : { ok: false, text: r.error },
+        ? { ok: true, text: t("profileSaved") }
+        : { ok: false, text: formatAccountError(te, r as AccountFailure) },
     );
   }
 
@@ -105,8 +112,8 @@ export function AccountClient() {
     setPwBusy(false);
     setPwMsg(
       r.ok
-        ? { ok: true, text: "Mot de passe modifié." }
-        : { ok: false, text: r.error },
+        ? { ok: true, text: t("passwordChanged") }
+        : { ok: false, text: formatAccountError(te, r as AccountFailure) },
     );
     if (r.ok) {
       setPwCurrent("");
@@ -115,20 +122,25 @@ export function AccountClient() {
   }
 
   function destroy() {
-    if (!confirm("Supprimer définitivement votre compte ? Cette action est irréversible.")) return;
+    if (!confirm(t("confirmDelete"))) return;
     const r = deleteAccount(user!.id);
-    if (!r.ok) alert(r.error);
+    if (!r.ok) alert(formatAccountError(te, r as AccountFailure));
   }
+
+  const memberDate = new Date(user.createdAt).toLocaleDateString(dateLocale);
 
   return (
     <div>
       <PageHero
-        eyebrow="Compte"
+        eyebrow={tPages("accountEyebrow")}
         title={user.profile.displayName || user.username}
-        subtitle={`Pseudo @${user.username} · membre depuis le ${new Date(user.createdAt).toLocaleDateString("fr-FR")}`}
+        subtitle={t("memberSince", {
+          username: user.username,
+          date: memberDate,
+        })}
       />
 
-      <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
+      <div className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <Card>
           <CardBody>
             <div className="flex flex-wrap items-center gap-4">
@@ -147,14 +159,14 @@ export function AccountClient() {
               </div>
               <div className="flex flex-col gap-2">
                 <Button type="button" variant="ghost" onClick={() => logout()}>
-                  Se déconnecter
+                  {t("logout")}
                 </Button>
                 {hasPermission("admin.access") ? (
                   <Link
                     href="/admin"
                     className="rounded-[var(--rp-radius)] border border-white/15 px-4 py-2 text-center text-sm font-semibold text-[var(--rp-fg)] hover:bg-white/10"
                   >
-                    Panneau admin
+                    {t("adminPanel")}
                   </Link>
                 ) : null}
               </div>
@@ -164,17 +176,15 @@ export function AccountClient() {
 
         <Card>
           <CardBody>
-            <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">Profil</h2>
-            <p className="mt-1 text-xs text-[var(--rp-muted)]">
-              Affiché à côté de vos messages dans le forum.
-            </p>
+            <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">{t("profileCardTitle")}</h2>
+            <p className="mt-1 text-xs text-[var(--rp-muted)]">{t("profileCardHint")}</p>
             <form className="mt-5 space-y-5" onSubmit={saveProfile}>
-              <AvatarPicker value={avatar} onChange={setAvatar} label="Avatar" />
-              <AvatarPicker value={banner} onChange={setBanner} label="Bannière (optionnelle)" />
+              <AvatarPicker value={avatar} onChange={setAvatar} label={t("avatarLabel")} />
+              <AvatarPicker value={banner} onChange={setBanner} label={t("bannerLabel")} />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="text-xs font-semibold text-[var(--rp-muted)]">Nom affiché</label>
+                  <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("displayName")}</label>
                   <Input
                     className="mt-2"
                     value={displayName}
@@ -183,9 +193,7 @@ export function AccountClient() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                    Couleur d’accent
-                  </label>
+                  <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("accentColor")}</label>
                   <div className="mt-2 flex items-center gap-2">
                     <input
                       type="color"
@@ -204,26 +212,24 @@ export function AccountClient() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Bio</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("bio")}</label>
                 <Textarea
                   className="mt-2 min-h-[5rem]"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   maxLength={400}
-                  placeholder="Présentation rapide…"
+                  placeholder={t("bioPlaceholder")}
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                  Signature (affichée sous vos messages)
-                </label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("signature")}</label>
                 <Textarea
                   className="mt-2 min-h-[4rem]"
                   value={signature}
                   onChange={(e) => setSignature(e.target.value)}
                   maxLength={200}
-                  placeholder="— ex. ‹Astra›, gérante d’un food-truck"
+                  placeholder={t("signaturePlaceholder")}
                 />
               </div>
 
@@ -236,7 +242,7 @@ export function AccountClient() {
                   {profileMsg.text}
                 </p>
               ) : null}
-              <Button type="submit">Enregistrer le profil</Button>
+              <Button type="submit">{t("saveProfile")}</Button>
             </form>
           </CardBody>
         </Card>
@@ -245,19 +251,14 @@ export function AccountClient() {
 
         <Card>
           <CardBody>
-            <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">
-              Mot de passe
-            </h2>
+            <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">{t("passwordCardTitle")}</h2>
             {!user.passwordHash ? (
-              <p className="mt-1 text-xs text-[var(--rp-muted)]">
-                Ce compte est lié à un service externe. Définissez un mot de passe pour pouvoir
-                aussi vous connecter classiquement.
-              </p>
+              <p className="mt-1 text-xs text-[var(--rp-muted)]">{t("passwordOAuthHint")}</p>
             ) : null}
             <form className="mt-4 grid gap-4 sm:grid-cols-2" onSubmit={savePassword}>
               <div>
                 <label className="text-xs font-semibold text-[var(--rp-muted)]">
-                  {user.passwordHash ? "Mot de passe actuel" : "Aucun mot de passe défini"}
+                  {user.passwordHash ? t("currentPassword") : t("noPasswordSet")}
                 </label>
                 <Input
                   className="mt-2"
@@ -270,7 +271,7 @@ export function AccountClient() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-[var(--rp-muted)]">Nouveau mot de passe</label>
+                <label className="text-xs font-semibold text-[var(--rp-muted)]">{t("newPassword")}</label>
                 <Input
                   className="mt-2"
                   type="password"
@@ -292,7 +293,7 @@ export function AccountClient() {
               ) : null}
               <div className="sm:col-span-2">
                 <Button type="submit" disabled={pwBusy} variant="ghost">
-                  {pwBusy ? "Modification…" : "Changer le mot de passe"}
+                  {pwBusy ? t("changePasswordBusy") : t("changePassword")}
                 </Button>
               </div>
             </form>
@@ -301,15 +302,11 @@ export function AccountClient() {
 
         <Card>
           <CardBody>
-            <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">
-              Zone dangereuse
-            </h2>
-            <p className="mt-1 text-xs text-[var(--rp-muted)]">
-              Suppression définitive du compte. Le dernier administrateur ne peut pas être supprimé.
-            </p>
+            <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">{t("dangerZone")}</h2>
+            <p className="mt-1 text-xs text-[var(--rp-muted)]">{t("dangerHint")}</p>
             <div className="mt-4">
               <Button type="button" variant="danger" onClick={destroy}>
-                Supprimer mon compte
+                {t("deleteAccount")}
               </Button>
             </div>
           </CardBody>

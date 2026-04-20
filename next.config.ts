@@ -29,7 +29,8 @@ const nextConfig: NextConfig = {
   experimental: {
     staleTimes: {
       dynamic: 60,
-      static: 300,
+      /** Réduit le risque de payload RSC i18n périmé (FR) après passage sur `/en/…`. */
+      static: 60,
     },
   },
 };
