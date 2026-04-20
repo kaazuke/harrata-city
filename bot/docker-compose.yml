@@ -1,0 +1,12 @@
+services:
+  harrata-bot:
+    build: .
+    container_name: harrata-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    # Décommenter pour persister des données futures (logs, DB, etc.)
+    # volumes:
+    #   - ./data:/app/data
