@@ -5,6 +5,8 @@
 **Template open source — Next.js 15 · React 19 · TypeScript · Tailwind CSS 4**  
 Le site public sur Vercel est une **démo** (contenus fictifs) pour que les contributeurs voient le rendu avant de forker.
 
+*English:* **Open-source FiveM community hub template** — the live Vercel site is a **demo** with sample content so you can explore the UI before forking.
+
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen?style=flat-square)](https://fivem-rp-community.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=flat-square&logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev)
@@ -244,15 +246,171 @@ Toute plateforme supportant Node.js 20+ (Railway, Render, VPS, fly.io…) foncti
 
 ---
 
-## Licence
+## English
 
-Template modifiable. GTA V et marques associées appartiennent à leurs détenteurs.
+### Overview
+
+This repo is an **open-source community hub** for **FiveM Roleplay** servers: presentation, rules, applications, shop, forum, gallery, news, stats — **editable from an admin panel** without changing code.
+
+The live demo uses **sample data** for the server block; after fork you can connect the **Cfx.re API** or a **`/players.json`** endpoint. **Discord** and **Steam** sign-in depend on your environment variables.
+
+- **Live demo**: [fivem-rp-community.vercel.app](https://fivem-rp-community.vercel.app) — browse the site; see [/en/hub-open-source](https://fivem-rp-community.vercel.app/en/hub-open-source) for project context.
+- **FiveM server**: not included in the default demo — set your `players.json` URL or Cfx.re code in the admin after fork.
+- **Beta — contact & info**: [Discord](https://discord.gg/7XVtaRnpQe) for install questions, tooling, feedback. Shareable notes (French, universal links): [docs/infos-beta-contact-discord.md](docs/infos-beta-contact-discord.md).
+
+### Features
+
+**Public UI**
+
+- Home with server widget (static demo or live when configured)
+- Presentation / lore, editable rules, applications (whitelist / staff), shop (Tebex-friendly), team, news with slugs, gallery, forum, statistics, contact (optional Discord webhook)
+
+**Authentication**
+
+- Discord OAuth2, Steam OpenID 2.0, signed cookie sessions, account page & logout
+
+**Live FiveM**
+
+- `/players.json` + `/info.json` polling, optional Cfx.re short code, server icon & metadata
+
+**Admin**
+
+- Live editing of copy, theme, navigation, integrations, JSON import/export, FiveM probe tab
+
+### Stack
+
+| Area | Tech |
+|------|------|
+| Framework | [Next.js 15](https://nextjs.org) (App Router + Turbopack) |
+| UI | [React 19](https://react.dev) + [Tailwind CSS 4](https://tailwindcss.com) |
+| Language | [TypeScript 5](https://www.typescriptlang.org) |
+| Runtime | Node.js 20+ |
+| Deploy | [Vercel](https://vercel.com) (serverless) |
+| Auth | Discord OAuth2, Steam OpenID 2.0, HMAC sessions |
+| Config storage | `localStorage` (client) + optional `.runtime/` (dev) |
+
+### Prerequisites
+
+- **Node.js** ≥ 20  
+- **npm** ≥ 10 (or pnpm / yarn)  
+- A **Discord Developer** application (OAuth)  
+- **Steam Web API key** (optional, for richer profiles)
+
+### Install & configuration
+
+```bash
+git clone https://github.com/kaazuke/harrata-city.git
+cd harrata-city
+npm install
+```
+
+Create `.env.local` at the project root:
+
+```env
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+AUTH_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback
+STEAM_REALM=http://localhost:3000
+STEAM_API_KEY=
+DISCORD_WEBHOOK_URL=
+ALLOW_RUNTIME_AUTH_CONFIG=false
+```
+
+Generate `AUTH_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+### NPM scripts
+
+```bash
+npm run dev          # Dev server (Turbopack)
+npm run dev:webpack  # Dev with Webpack (fallback)
+npm run dev:clean    # Clean + dev
+npm run build        # Production build
+npm run start        # Production server
+npm run lint         # ESLint
+npm run clean        # Clear Next.js caches
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+### Project layout
+
+```
+harrata-city/
+├── src/
+│   ├── app/                 # Next.js App Router
+│   │   ├── api/             # Serverless routes (auth, live, contact, forms…)
+│   │   ├── admin/           # Admin panel
+│   │   ├── forum/
+│   │   └── …
+│   ├── components/
+│   ├── config/              # Default site config
+│   └── lib/
+├── public/
+├── scripts/
+└── examples/
+```
+
+### API routes (summary)
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/server/live` | GET | Live FiveM status (players + info) |
+| `/api/auth/discord` | GET | Start Discord OAuth |
+| `/api/auth/discord/callback` | GET | Discord callback |
+| `/api/auth/steam` | GET | Start Steam OpenID |
+| `/api/auth/steam/callback` | GET | Steam callback |
+| `/api/auth/me` | GET | Current user |
+| `/api/auth/logout` | POST | Log out |
+| `/api/contact` | POST | Contact form → Discord webhook |
+| `/api/forms` | POST | Application forms |
+| `/api/admin/auth-config` | GET/POST/DELETE | Runtime auth config (dev) |
+
+### Deployment
+
+**Vercel (recommended)** — import the repo on [vercel.com/new](https://vercel.com/new), set the same env vars as above, deploy. Pushes to `main` redeploy automatically.
+
+**Custom domain** — Vercel → Project → Domains; DNS e.g. `A` → `76.76.21.21`, `CNAME` → `cname.vercel-dns.com`.
+
+**Other hosts** — any Node 20+ platform: `npm run build && npm run start`.
+
+### Security
+
+- No secrets in git (`.env*`, `.runtime/`, `.vercel/` ignored)  
+- HMAC-signed sessions with `AUTH_SECRET`  
+- `HttpOnly` + `SameSite=Lax` + `Secure` cookies in production  
+- In production, prefer **env-only** secrets; admin runtime auth config is read-only unless `ALLOW_RUNTIME_AUTH_CONFIG=true`
+
+### Roadmap (same as French section)
+
+- [ ] Fine-grained roles (Admin, Moderator, Staff, Member)  
+- [ ] Richer Steam profile (avatar, name via Web API)  
+- [ ] Richer Discord profile (guild roles, etc.)  
+- [ ] Pluggable extensions system  
+- [ ] Deeper Tebex integration  
+- [ ] Advanced stats dashboard  
+- [ ] Real-time notifications (WebSocket)  
+- [ ] Public API for Discord bots  
+
+---
+
+## Licence / License
+
+**FR** — Template modifiable. GTA V et marques associées appartiennent à leurs détenteurs.  
 Ce hub communautaire est un projet indépendant non affilié à Rockstar Games ni à Cfx.re.
+
+**EN** — Editable template. Grand Theft Auto V and related trademarks belong to their respective owners.  
+This community hub is an independent project, not affiliated with Rockstar Games or Cfx.re.
 
 ---
 
 <div align="center">
 
-**Démo publique · [fivem-rp-community.vercel.app](https://fivem-rp-community.vercel.app) · [GitHub](https://github.com/kaazuke/harrata-city)**
+**Demo · [fivem-rp-community.vercel.app](https://fivem-rp-community.vercel.app) · [GitHub](https://github.com/kaazuke/harrata-city) · [Discord](https://discord.gg/7XVtaRnpQe)**
 
 </div>
