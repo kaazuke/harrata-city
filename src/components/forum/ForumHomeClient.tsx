@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { defaultSiteConfig } from "@/config/default-site";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -15,8 +16,9 @@ import { categoryStats, formatForumRelative } from "@/lib/forum-mutate";
 import { isCategoryPrivate, visibleCategories } from "@/lib/forum-access";
 
 export function ForumHomeClient() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const { findByUsername, roleDef } = useAccount();
+  const t = useTranslations("forum.home");
   const allCategories = Array.isArray(config.forumCategories)
     ? config.forumCategories
     : defaultSiteConfig.forumCategories;
@@ -29,7 +31,7 @@ export function ForumHomeClient() {
     : defaultSiteConfig.forumTopics;
 
   const totals = useMemo(() => {
-    const messages = topics.reduce((acc, t) => acc + 1 + t.replies.length, 0);
+    const messages = topics.reduce((acc, top) => acc + 1 + top.replies.length, 0);
     return { topics: topics.length, messages };
   }, [topics]);
 
@@ -39,11 +41,7 @@ export function ForumHomeClient() {
 
   return (
     <div>
-      <PageHero
-        eyebrow="Communauté"
-        title="Forum"
-        subtitle="Sujets, réponses et entraide entre joueurs. Les messages sont stockés localement (export JSON pour les partager)."
-      />
+      <PageHero eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle")} />
 
       <div className="mx-auto max-w-7xl px-4 py-10">
         <ForumIdentityBar />
@@ -52,7 +50,7 @@ export function ForumHomeClient() {
           <Card>
             <CardBody>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                Catégories
+                {t("categories")}
               </div>
               <div className="mt-1 font-heading text-2xl font-semibold tabular-nums text-[var(--rp-fg)]">
                 {categories.length}
@@ -62,7 +60,7 @@ export function ForumHomeClient() {
           <Card>
             <CardBody>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                Sujets
+                {t("topics")}
               </div>
               <div className="mt-1 font-heading text-2xl font-semibold tabular-nums text-[var(--rp-fg)]">
                 {totals.topics}
@@ -72,7 +70,7 @@ export function ForumHomeClient() {
           <Card>
             <CardBody>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-                Messages
+                {t("messages")}
               </div>
               <div className="mt-1 font-heading text-2xl font-semibold tabular-nums text-[var(--rp-fg)]">
                 {totals.messages}
@@ -83,10 +81,10 @@ export function ForumHomeClient() {
 
         <div className="mt-8 overflow-hidden rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-[color-mix(in_oklab,var(--rp-surface)_88%,transparent)]">
           <div className="hidden grid-cols-12 gap-3 border-b border-[var(--rp-border)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--rp-muted)] md:grid">
-            <div className="col-span-6">Catégorie</div>
-            <div className="col-span-2 text-center">Sujets</div>
-            <div className="col-span-1 text-center">Messages</div>
-            <div className="col-span-3">Dernier sujet</div>
+            <div className="col-span-6">{t("colCategory")}</div>
+            <div className="col-span-2 text-center">{t("colTopics")}</div>
+            <div className="col-span-1 text-center">{t("colMessages")}</div>
+            <div className="col-span-3">{t("colLastTopic")}</div>
           </div>
 
           <ul className="divide-y divide-[var(--rp-border)]">
@@ -114,7 +112,7 @@ export function ForumHomeClient() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-semibold text-[var(--rp-fg)]">{c.title}</span>
                           {isCategoryPrivate(c) ? (
-                            <Badge tone="warning">Privé</Badge>
+                            <Badge tone="warning">{t("private")}</Badge>
                           ) : null}
                         </div>
                         <p className="mt-1 text-sm leading-relaxed text-[var(--rp-muted)]">{c.description}</p>
@@ -122,11 +120,11 @@ export function ForumHomeClient() {
                     </div>
 
                     <div className="md:col-span-2 md:text-center md:self-center">
-                      <span className="md:hidden text-xs text-[var(--rp-muted)]">Sujets : </span>
+                      <span className="md:hidden text-xs text-[var(--rp-muted)]">{t("topicsInline")}</span>
                       <span className="font-semibold tabular-nums text-[var(--rp-fg)]">{stats.topics}</span>
                     </div>
                     <div className="md:col-span-1 md:text-center md:self-center">
-                      <span className="md:hidden text-xs text-[var(--rp-muted)]">Messages : </span>
+                      <span className="md:hidden text-xs text-[var(--rp-muted)]">{t("messagesInline")}</span>
                       <span className="font-semibold tabular-nums text-[var(--rp-fg)]">{stats.messages}</span>
                     </div>
                     <div className="md:col-span-3 md:self-center">
@@ -142,11 +140,11 @@ export function ForumHomeClient() {
                             </div>
                           </div>
                           {stats.last.pinned ? (
-                            <Badge tone="primary">Épinglé</Badge>
+                            <Badge tone="primary">{t("pinned")}</Badge>
                           ) : null}
                         </div>
                       ) : (
-                        <span className="text-xs text-[var(--rp-muted)]">Aucun sujet</span>
+                        <span className="text-xs text-[var(--rp-muted)]">{t("noTopic")}</span>
                       )}
                     </div>
                   </Link>

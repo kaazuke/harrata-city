@@ -1,7 +1,7 @@
 {
   "meta": {
     "tagline": "FiveM RP Community Hub",
-    "description": "Harrata City — French-speaking FiveM Roleplay server: living economy, factions, jobs and realistic urban experience."
+    "description": "Harrata City — FiveM Roleplay server: living economy, factions, jobs and realistic urban experience."
   },
   "nav": {
     "home": "Home",
@@ -33,6 +33,73 @@
     "fr": "Français",
     "en": "English"
   },
+  "announcementBar": {
+    "ariaLabel": "Announcements",
+    "announcementOf": "Announcement {current} of {total}"
+  },
+  "welcomeBanner": {
+    "defaultMessage": "Welcome to our RP server — don't forget to read the rules!",
+    "extension": "Extension",
+    "close": "Close banner"
+  },
+  "themeSwitcher": {
+    "ariaLabel": "Change theme",
+    "label": "Theme",
+    "presets": "Theme presets",
+    "active": "active"
+  },
+  "errorPage": {
+    "title": "An error prevented rendering",
+    "unknown": "Unknown error",
+    "retry": "Try again",
+    "home": "Home",
+    "storageHint": "If you customized the site in admin: try clearing the local storage (F12 → Application → Local Storage → delete « <key>rp-site-config-full</key> ») then reload."
+  },
+  "auth": {
+    "bar": {
+      "connected": "Connected",
+      "loading": "…",
+      "logout": "Log out",
+      "discord": "Discord",
+      "steam": "Steam",
+      "authError": "Authentication: {provider}"
+    },
+    "errors": {
+      "discord_missing_env": "Discord OAuth: missing environment variables.",
+      "discord_state": "Discord login cancelled or invalid session.",
+      "discord_error": "Discord login failed.",
+      "steam_invalid": "Invalid Steam OpenID response.",
+      "steam_id": "Unable to read Steam identifier.",
+      "steam_mode": "Unexpected Steam return.",
+      "steam_error": "Steam OpenID error.",
+      "missing_auth_secret": "AUTH_SECRET missing on server."
+    },
+    "menu": {
+      "login": "Login",
+      "register": "Create account",
+      "profile": "My profile",
+      "adminPanel": "Admin panel",
+      "logout": "Log out"
+    }
+  },
+  "serverPanel": {
+    "server": "Server",
+    "editableIndicators": "Editable indicators (admin)",
+    "live": "Live",
+    "playersOnline": "Players online",
+    "status": "Status",
+    "connection": "Connection",
+    "copyIp": "Copy IP / command",
+    "copied": "Copied",
+    "online": "Online",
+    "maintenance": "Maintenance",
+    "offline": "Offline",
+    "sync": "Sync…",
+    "offlineApi": "Offline API",
+    "syncedAt": "Synced at {time}",
+    "syncedLive": "Live synced",
+    "apiUnreachable": "API unreachable — fallback values shown"
+  },
   "home": {
     "hero": {
       "badge": "FiveM Roleplay",
@@ -50,30 +117,10 @@
       "cta": "Discover the project →"
     },
     "features": [
-      {
-        "id": "quality",
-        "icon": "shield",
-        "title": "RP Quality",
-        "description": "Coherent scenes, fair-play and responsive staff for lasting immersion."
-      },
-      {
-        "id": "economy",
-        "icon": "economy",
-        "title": "Living economy",
-        "description": "Legal & illegal jobs, controlled money flows, RP-minded anti-grind."
-      },
-      {
-        "id": "factions",
-        "icon": "users",
-        "title": "Factions & companies",
-        "description": "Playable structures, documents, territories and narrative events."
-      },
-      {
-        "id": "map",
-        "icon": "map",
-        "title": "Optimized map",
-        "description": "Performance, clean props, clear RP zones and polished MLOs."
-      }
+      { "id": "quality", "icon": "shield", "title": "RP Quality", "description": "Coherent scenes, fair-play and responsive staff for lasting immersion." },
+      { "id": "economy", "icon": "economy", "title": "Living economy", "description": "Legal & illegal jobs, controlled money flows, RP-minded anti-grind." },
+      { "id": "factions", "icon": "users", "title": "Factions & companies", "description": "Playable structures, documents, territories and narrative events." },
+      { "id": "map", "icon": "map", "title": "Optimized map", "description": "Performance, clean props, clear RP zones and polished MLOs." }
     ],
     "forum": {
       "title": "Community forum",
@@ -110,14 +157,8 @@
     "youtubeVideo": "YouTube video",
     "missingUrl": "Missing URL",
     "lore": [
-      {
-        "title": "Los Santos, differently",
-        "body": "Every street here tells a story of debt, alliance or betrayal. You're not a scoreboard: you're a resident."
-      },
-      {
-        "title": "Philosophy",
-        "body": "We prioritize narrative, respect for the setting, and slow but meaningful progression. Grinding isn't the protagonist."
-      }
+      { "title": "Los Santos, differently", "body": "Every street here tells a story of debt, alliance or betrayal. You're not a scoreboard: you're a resident." },
+      { "title": "Philosophy", "body": "We prioritize narrative, respect for the setting, and slow but meaningful progression. Grinding isn't the protagonist." }
     ],
     "strengths": [
       "Experienced & transparent staff",
@@ -128,25 +169,266 @@
   },
   "rules": {
     "eyebrow": "Rules",
-    "title": "Gameplay framework & rules",
-    "subtitle": "The rules that ensure a healthy and fair RP experience for everyone."
+    "title": "A clear framework for lasting RP",
+    "subtitle": "General, RP, staff and whitelist — search a keyword or share a section via its anchor.",
+    "searchLabel": "Search rules",
+    "searchPlaceholder": "E.g. meta, whitelist, staff…",
+    "anchorHint": "Tip: use URL anchors <example>#general</example> to share a section."
   },
-  "serverPanel": {
-    "server": "Server",
-    "editableIndicators": "Editable indicators (admin)",
-    "live": "Live",
-    "playersOnline": "Players online",
-    "status": "Status",
-    "connection": "Connection",
-    "copyIp": "Copy IP / command",
-    "copied": "Copied",
-    "online": "Online",
-    "maintenance": "Maintenance",
-    "offline": "Offline",
-    "sync": "Sync…",
-    "offlineApi": "Offline API",
-    "syncedAt": "Synced at {time}",
-    "syncedLive": "Live synced",
-    "apiUnreachable": "API unreachable — fallback values shown"
+  "applications": {
+    "tabs": {
+      "whitelist": "Whitelist",
+      "whitelistDesc": "Player access — introduce yourself and your character.",
+      "staff": "Staff",
+      "staffDesc": "Join the team: moderation, support, dev…",
+      "business": "Company / Faction",
+      "businessDesc": "Structure project: needs, staff, scenarios."
+    },
+    "eyebrow": "Applications",
+    "title": "Apply cleanly, with no friction",
+    "subtitle": "Fields are controlled by the site configuration (admin). Set up a Discord webhook server-side to receive applications.",
+    "whitelistFormTitle": "Whitelist form",
+    "whitelistFormHelp": "Fields are editable from admin.",
+    "staffFormTitle": "Staff form",
+    "businessFormTitle": "Company / Faction form"
+  },
+  "shop": {
+    "eyebrow": "Shop",
+    "title": "Premium conversion, no pay-to-win",
+    "subtitle": "Tebex-ready structure: product cards, promo badges, and external purchase links.",
+    "promo": "Promo",
+    "promoBanner": "Weekend offer: cosmetic bundles & priority support.",
+    "badges": {
+      "vip": "VIP",
+      "new": "New",
+      "promo": "Promo",
+      "limited": "Limited"
+    },
+    "buyTebex": "Buy (Tebex)",
+    "configureLink": "Tebex link to configure",
+    "preSaleQuestion": "Pre-sale question"
+  },
+  "team": {
+    "eyebrow": "Team",
+    "title": "Humans behind the machine",
+    "empty": "No staff members yet.",
+    "tiers": {
+      "direction": "Leadership",
+      "administration": "Administration",
+      "moderation": "Moderation",
+      "development": "Development",
+      "support": "Support"
+    },
+    "defaultBio": {
+      "admin": "Community administrator.",
+      "moderator": "Community moderator.",
+      "member": "Team member ({role})."
+    }
+  },
+  "news": {
+    "eyebrow": "News",
+    "title": "Patch notes, announcements, events",
+    "subtitle": "Categories, featured posts and article pages ready for a future CMS.",
+    "all": "All",
+    "featured": "Featured",
+    "categories": {
+      "patch": "Patch",
+      "news": "News",
+      "event": "Event",
+      "community": "Community"
+    },
+    "article": {
+      "notFound": "Article not found",
+      "notFoundHint": "This slug does not exist in the current configuration.",
+      "back": "Back to news",
+      "backShort": "← Back",
+      "featured": "Featured"
+    }
+  },
+  "gallery": {
+    "eyebrow": "Gallery",
+    "title": "Screenshots, videos, clips",
+    "subtitle": "Category filters — replace visuals with your server captures.",
+    "all": "All",
+    "categories": {
+      "screenshot": "Screenshot",
+      "video": "Video",
+      "clip": "Clip"
+    }
+  },
+  "stats": {
+    "eyebrow": "Statistics",
+    "title": "Oversight & transparency",
+    "subtitle": "Reusable cards + simple chart. Plug in a FiveM / DB API for live data.",
+    "weeklyActivity": "Weekly activity (mock)",
+    "weeklyActivityHint": "Example time series — replace with your aggregates.",
+    "apiSuggested": "Suggested API: ",
+    "notConfigured": "NOT CONFIGURED"
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Support & FAQ",
+    "subtitle": "Got a question or a report? Message the staff without email — your message lands directly in the admin panel.",
+    "form": {
+      "title": "Message the staff",
+      "subtitle": "No email needed. Staff will reply via Discord or in-game.",
+      "pseudo": "Your nickname",
+      "pseudoPlaceholder": "How should we call you?",
+      "loggedAs": "You are logged in as ",
+      "subject": "Subject",
+      "subjectPlaceholder": "Short summary (e.g. « Whitelist bug »)",
+      "message": "Message",
+      "messagePlaceholder": "Describe your request (10 characters min.)",
+      "sending": "Sending…",
+      "send": "Send to staff",
+      "success": "Message sent to staff. You'll get a reply via Discord or in-game.",
+      "errors": {
+        "pseudo": "Please enter your nickname.",
+        "subject": "Subject too short (3 characters minimum).",
+        "message": "Message too short (10 characters minimum)."
+      }
+    },
+    "quickLinks": "Quick links",
+    "discord": "Discord",
+    "email": "Email: ",
+    "ticket": {
+      "title": "Ticket (visual)",
+      "subtitle": "Future integration: Zendesk / Discord threads.",
+      "number": "#TCK-2048",
+      "status": "Open • Normal priority",
+      "placeholder": "This is a premium placeholder for your future workflows.",
+      "openOnDiscord": "Open a Discord ticket →"
+    },
+    "faq": "FAQ"
+  },
+  "authPages": {
+    "loginTitle": "Login",
+    "signupTitle": "Create account",
+    "accountTitle": "My account"
+  },
+  "notFound": {
+    "code": "Error 404",
+    "title": "Page not found",
+    "description": "The page you're looking for has been moved, deleted, or never existed.",
+    "home": "Home",
+    "forum": "Forum"
+  },
+  "forum": {
+    "home": {
+      "eyebrow": "Community",
+      "title": "Forum",
+      "subtitle": "Topics, replies and mutual aid between players. Messages are stored locally (JSON export to share).",
+      "categories": "Categories",
+      "topics": "Topics",
+      "messages": "Messages",
+      "colCategory": "Category",
+      "colTopics": "Topics",
+      "colMessages": "Messages",
+      "colLastTopic": "Latest topic",
+      "private": "Private",
+      "topicsInline": "Topics: ",
+      "messagesInline": "Messages: ",
+      "pinned": "Pinned",
+      "noTopic": "No topic yet"
+    },
+    "disabled": {
+      "title": "Forum disabled",
+      "subtitle": "The admin disabled the forum from the site configuration.",
+      "body": "The forum module is disabled. Re-enable it from <admin>Administration</admin> → <mono>Modules</mono> tab → <mono>forum</mono> checkbox, then save the local configuration.",
+      "backHome": "← Back to home"
+    },
+    "identity": {
+      "loggedAs": "Logged in as ",
+      "guest": "Guest (read-only)",
+      "loginLink": "Log in",
+      "registerLink": "Create account",
+      "roleBadge": "Role"
+    },
+    "identityBar": {
+      "notLogged": "You're not logged in. Create an account to post on the forum.",
+      "login": "Log in",
+      "signup": "Sign up",
+      "editProfile": "Edit my profile"
+    },
+    "category": {
+      "back": "← Forum",
+      "private": "Private category",
+      "privateMessage": "This category is reserved for certain roles.",
+      "notFound": "Category not found",
+      "backToForum": "← Back to forum",
+      "privateReservedStaff": "This category is reserved for staff.",
+      "eyebrow": "Forum",
+      "eyebrowPrivate": "Forum · Private",
+      "allCategories": "← All categories",
+      "newTopic": "New topic",
+      "cancel": "Cancel",
+      "loginToPost": "Log in to post",
+      "roleCantPost": "Your role doesn't allow creating topics",
+      "newTopicHintPrefix": "The topic will be published in",
+      "newTopicHintMiddle": "as",
+      "newTopicHintSuffix": ".",
+      "titleLabel": "Title",
+      "messageLabel": "Message",
+      "publishTopic": "Publish topic",
+      "errLogin": "Log in to publish a topic.",
+      "errRole": "Your role doesn't allow creating topics.",
+      "errEmpty": "Please fill in a title and a message.",
+      "colTopic": "Topic",
+      "colReplies": "Replies",
+      "colViews": "Views",
+      "colLastMessage": "Last message",
+      "empty": "No topics yet. Start the discussion with « New topic ».",
+      "pinned": "Pinned",
+      "locked": "Locked",
+      "by": "By {author} · {when}",
+      "repliesInline": "Replies: ",
+      "viewsInline": "Views: "
+    },
+    "topic": {
+      "notFound": "Topic not found",
+      "backToForum": "← Forum",
+      "privateTitle": "Private category",
+      "privateBody": "This category is reserved for certain roles.",
+      "backToForumLink": "← Back to forum",
+      "loginToReply": "Log in to reply.",
+      "roleCantReply": "Your role doesn't allow replies.",
+      "topicLocked": "Topic locked.",
+      "messageEmpty": "Message cannot be empty.",
+      "confirmDeleteTopic": "Delete this topic and all replies?",
+      "confirmDeletePost": "Delete this message?",
+      "breadcrumbForum": "Forum",
+      "pinned": "Pinned",
+      "locked": "Locked",
+      "views": " views",
+      "by": "By {author}",
+      "lastActivity": " · last activity {time}",
+      "quote": "Quote",
+      "edit": "Edit",
+      "unpin": "Unpin",
+      "pin": "Pin",
+      "unlock": "Unlock",
+      "lock": "Lock",
+      "delete": "Delete",
+      "repliesCount": "Replies ({count})",
+      "firstToReply": "Be the first to reply.",
+      "lockedCta": "This topic is locked. New replies are disabled.",
+      "reply": "Reply",
+      "replyingAs": "Replying as {name}",
+      "messageLabel": "Message",
+      "sendReply": "Send reply",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "notifications": {
+      "ariaLabel": "Notifications",
+      "ariaLabelUnread": "Notifications ({count} unread)",
+      "title": "Notifications",
+      "empty": "No notifications",
+      "total": "{count} total",
+      "clearAll": "Clear all",
+      "emptyDescription": "When someone replies to one of your topics, you'll see it here.",
+      "replied": " replied to your topic",
+      "deleteOne": "Delete this notification"
+    }
   }
 }

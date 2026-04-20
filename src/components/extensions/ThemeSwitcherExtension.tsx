@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { getExtension, isExtensionEnabled } from "@/lib/extensions/manage";
 import type { SiteTheme } from "@/config/types";
@@ -87,6 +88,7 @@ const DEFAULT_PRESETS: ThemePreset[] = [
 
 export function ThemeSwitcherExtension() {
   const { config, setConfig, persist } = useSiteConfig();
+  const t = useTranslations("themeSwitcher");
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -134,12 +136,12 @@ export function ThemeSwitcherExtension() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="flex h-9 items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.04] px-3 text-xs font-semibold text-[var(--rp-fg)] transition hover:border-[color-mix(in_oklab,var(--rp-primary)_40%,var(--rp-border))]"
-        aria-label="Changer de thème"
+        aria-label={t("ariaLabel")}
         aria-haspopup="menu"
         aria-expanded={open}
       >
         <span aria-hidden>🎨</span>
-        <span className="hidden sm:inline">Thème</span>
+        <span className="hidden sm:inline">{t("label")}</span>
       </button>
 
       {open ? (
@@ -149,7 +151,7 @@ export function ThemeSwitcherExtension() {
         >
           <div className="border-b border-[var(--rp-border)] px-3 py-2">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--rp-muted)]">
-              Presets de thèmes
+              {t("presets")}
             </p>
           </div>
           <ul className="max-h-[320px] overflow-y-auto p-1">
@@ -181,7 +183,7 @@ export function ThemeSwitcherExtension() {
                       ))}
                     </span>
                     {active ? (
-                      <span className="text-[var(--rp-success)]" aria-label="actif">
+                      <span className="text-[var(--rp-success)]" aria-label={t("active")}>
                         ✓
                       </span>
                     ) : null}

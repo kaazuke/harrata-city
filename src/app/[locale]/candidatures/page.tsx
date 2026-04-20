@@ -1,57 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { PageHero } from "@/components/layout/PageHero";
 import { DynamicForm } from "@/components/forms/DynamicForm";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { Card, CardBody } from "@/components/ui/Card";
 
 type Tab = "whitelist" | "staff" | "business";
 
 export default function CandidaturesPage() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
+  const t = useTranslations("applications");
   const [tab, setTab] = useState<Tab>("whitelist");
 
   const tabs: { id: Tab; label: string; desc: string }[] = [
-    {
-      id: "whitelist",
-      label: "Whitelist",
-      desc: "Accès joueur — présentez-vous et votre personnage.",
-    },
-    {
-      id: "staff",
-      label: "Staff",
-      desc: "Rejoindre l équipe : modération, support, dev…",
-    },
-    {
-      id: "business",
-      label: "Entreprise / Faction",
-      desc: "Projet de structure : besoins, effectifs, scénarios.",
-    },
+    { id: "whitelist", label: t("tabs.whitelist"), desc: t("tabs.whitelistDesc") },
+    { id: "staff", label: t("tabs.staff"), desc: t("tabs.staffDesc") },
+    { id: "business", label: t("tabs.business"), desc: t("tabs.businessDesc") },
   ];
 
   return (
     <div>
-      <PageHero
-        eyebrow="Candidatures"
-        title="Postulez proprement, sans friction"
-        subtitle="Les champs sont pilotés par la configuration du site (admin). Branchez Discord webhook côté serveur pour recevoir les dossiers."
-      />
+      <PageHero eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle")} />
 
       <div className="mx-auto max-w-5xl px-4 py-12">
         <div className="flex flex-wrap gap-2">
-          {tabs.map((t) => (
+          {tabs.map((x) => (
             <button
-              key={t.id}
+              key={x.id}
               type="button"
-              onClick={() => setTab(t.id)}
+              onClick={() => setTab(x.id)}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                tab === t.id
+                tab === x.id
                   ? "border-[color-mix(in_oklab,var(--rp-primary)_55%,var(--rp-border))] bg-white/10 text-[var(--rp-fg)]"
                   : "border-[var(--rp-border)] text-[var(--rp-muted)] hover:bg-white/5"
               }`}
             >
-              {t.label}
+              {x.label}
             </button>
           ))}
         </div>
@@ -64,8 +50,8 @@ export default function CandidaturesPage() {
           <CardBody>
             {tab === "whitelist" ? (
               <DynamicForm
-                title="Formulaire whitelist"
-                description="Les champs sont modifiables depuis l admin."
+                title={t("whitelistFormTitle")}
+                description={t("whitelistFormHelp")}
                 fields={config.forms.whitelist}
                 endpoint="/api/forms"
                 extraPayload={{ type: "whitelist" }}
@@ -73,7 +59,7 @@ export default function CandidaturesPage() {
             ) : null}
             {tab === "staff" ? (
               <DynamicForm
-                title="Formulaire staff"
+                title={t("staffFormTitle")}
                 fields={config.forms.staff}
                 endpoint="/api/forms"
                 extraPayload={{ type: "staff" }}
@@ -81,7 +67,7 @@ export default function CandidaturesPage() {
             ) : null}
             {tab === "business" ? (
               <DynamicForm
-                title="Formulaire entreprise / faction"
+                title={t("businessFormTitle")}
                 fields={config.forms.business}
                 endpoint="/api/forms"
                 extraPayload={{ type: "business" }}

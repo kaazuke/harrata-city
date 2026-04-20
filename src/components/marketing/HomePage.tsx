@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { defaultSiteConfig } from "@/config/default-site";
 import { FeatureIcon } from "@/components/icons/FeatureIcons";
 
@@ -16,14 +16,12 @@ import { HeroServerPanel } from "@/components/marketing/HeroServerPanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { useLiveServer } from "@/lib/server/useLiveServer";
 
-type FeatureItem = { id: string; icon: string; title: string; description: string };
-
 export function HomePage() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const [copied, setCopied] = useState(false);
   const live = useLiveServer();
-  const locale = useLocale();
   const t = useTranslations("home");
+  const tNews = useTranslations("news.categories");
 
   const heroSrc = config.theme?.heroBackground?.trim() || defaultSiteConfig.theme.heroBackground;
   const heroOverlay = config.theme?.heroOverlayOpacity ?? defaultSiteConfig.theme.heroOverlayOpacity;
@@ -41,24 +39,7 @@ export function HomePage() {
     ? config.forumCategories
     : defaultSiteConfig.forumCategories;
 
-  /**
-   * Features : en FR on laisse l'admin piloter (config.features) ;
-   * en EN on utilise la traduction statique depuis messages/en.json.
-   */
-  const features: FeatureItem[] =
-    locale === "fr"
-      ? (Array.isArray(config.features) ? config.features : []).map((f) => ({
-          id: f.id,
-          icon: f.icon,
-          title: f.title,
-          description: f.description,
-        }))
-      : (t.raw("features") as FeatureItem[]);
-
-  /** Idem pour textes hero : config en FR (admin-editable), messages en EN. */
-  const heroTitle = locale === "fr" ? config.meta.siteName : t("hero.title");
-  const heroTagline = locale === "fr" ? config.meta.slogan : t("hero.tagline");
-  const heroDescription = locale === "fr" ? config.meta.description : t("hero.description");
+  const features = Array.isArray(config.features) ? config.features : [];
 
   async function copyIp() {
     try {
@@ -69,6 +50,16 @@ export function HomePage() {
       setCopied(false);
     }
   }
+
+  const categoryLabel = (id: string): string => {
+    const known: Record<string, string> = {
+      patch: tNews("patch"),
+      news: tNews("news"),
+      event: tNews("event"),
+      community: tNews("community"),
+    };
+    return known[id] ?? id;
+  };
 
   return (
     <div>
@@ -99,11 +90,11 @@ export function HomePage() {
             <div className="max-w-3xl min-w-0 flex-1">
               <Badge tone="primary">{t("hero.badge")}</Badge>
               <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-white drop-shadow-sm sm:text-5xl md:text-[3.25rem]">
-                {heroTitle}
+                {config.meta.siteName}
               </h1>
-              <p className="mt-4 text-lg leading-snug text-white/85 sm:text-xl">{heroTagline}</p>
+              <p className="mt-4 text-lg leading-snug text-white/85 sm:text-xl">{config.meta.slogan}</p>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
-                {heroDescription}
+                {config.meta.description}
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -249,7 +240,7 @@ export function HomePage() {
                   <Card interactive className="h-full">
                     <CardBody>
                       <div className="flex items-center justify-between gap-3">
-                        <Badge tone="accent">{a.category}</Badge>
+                        <Badge tone="accent">{categoryLabel(a.category)}</Badge>
                         <time className="text-xs tabular-nums text-[var(--rp-muted)]" dateTime={a.date}>
                           {a.date}
                         </time>

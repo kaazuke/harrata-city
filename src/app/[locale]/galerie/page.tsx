@@ -2,14 +2,16 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { PageHero } from "@/components/layout/PageHero";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { Card } from "@/components/ui/Card";
 
 type Cat = "all" | "screenshot" | "video" | "clip";
 
 export default function GaleriePage() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
+  const t = useTranslations("gallery");
   const [cat, setCat] = useState<Cat>("all");
 
   const items = useMemo(() => {
@@ -19,13 +21,14 @@ export default function GaleriePage() {
     return config.gallery.filter((g) => g.category === cat);
   }, [cat, config.gallery, config.modules.galleryFilters]);
 
+  const label = (c: Cat) => {
+    if (c === "all") return t("all");
+    return t(`categories.${c}` as "categories.screenshot" | "categories.video" | "categories.clip");
+  };
+
   return (
     <div>
-      <PageHero
-        eyebrow="Galerie"
-        title="Screenshots, vidéos, clips"
-        subtitle="Filtres par catégorie — remplacez les visuels par vos captures serveur."
-      />
+      <PageHero eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle")} />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
         {config.modules.galleryFilters ? (
@@ -41,7 +44,7 @@ export default function GaleriePage() {
                     : "border-[var(--rp-border)] text-[var(--rp-muted)] hover:bg-white/5"
                 }`}
               >
-                {c === "all" ? "Tout" : c}
+                {label(c)}
               </button>
             ))}
           </div>
@@ -56,7 +59,7 @@ export default function GaleriePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute bottom-3 left-3 right-3">
                     <div className="text-sm font-semibold text-white">{g.title}</div>
-                    <div className="text-xs text-white/70">{g.category}</div>
+                    <div className="text-xs text-white/70">{label(g.category as Cat)}</div>
                   </div>
                 </div>
               </Card>

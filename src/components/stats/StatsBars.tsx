@@ -1,9 +1,9 @@
 "use client";
 
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 
 export function StatsBars() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const max = Math.max(1, ...config.statSeries.map((s) => s.value));
   return (
     <div className="mt-6">

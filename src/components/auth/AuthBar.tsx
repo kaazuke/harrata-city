@@ -1,27 +1,31 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { SessionUser } from "@/lib/auth/session";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 
 type Me = SessionUser | null;
 
-const authErrors: Record<string, string> = {
-  discord_missing_env: "Discord OAuth : variables d environnement manquantes.",
-  discord_state: "Connexion Discord annulée ou session invalide.",
-  discord_error: "Échec de la connexion Discord.",
-  steam_invalid: "Réponse Steam OpenID invalide.",
-  steam_id: "Impossible de lire l identifiant Steam.",
-  steam_mode: "Retour Steam inattendu.",
-  steam_error: "Erreur Steam OpenID.",
-  missing_auth_secret: "AUTH_SECRET manquant sur le serveur.",
-};
+const KNOWN_AUTH_ERRORS = [
+  "discord_missing_env",
+  "discord_state",
+  "discord_error",
+  "steam_invalid",
+  "steam_id",
+  "steam_mode",
+  "steam_error",
+  "missing_auth_secret",
+] as const;
+
+type AuthErrorKey = (typeof KNOWN_AUTH_ERRORS)[number];
 
 export function AuthBar() {
   const { config } = useSiteConfig();
   const sp = useSearchParams();
+  const t = useTranslations("auth.bar");
+  const tErr = useTranslations("auth.errors");
   const [me, setMe] = useState<Me | undefined>(undefined);
 
   const showDiscord = config.integrations?.discordOAuth?.enabled ?? false;
@@ -43,8 +47,11 @@ export function AuthBar() {
     if (!authParam || authParam === "ok") {
       return null;
     }
-    return authErrors[authParam] ?? `Authentification : ${authParam}`;
-  }, [authParam]);
+    if ((KNOWN_AUTH_ERRORS as readonly string[]).includes(authParam)) {
+      return tErr(authParam as AuthErrorKey);
+    }
+    return t("authError", { provider: authParam });
+  }, [authParam, t, tErr]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -68,11 +75,11 @@ export function AuthBar() {
         </div>
       ) : null}
       {authParam === "ok" ? (
-        <div className="text-[10px] font-semibold text-[var(--rp-success)]">Connecté</div>
+        <div className="text-[10px] font-semibold text-[var(--rp-success)]">{t("connected")}</div>
       ) : null}
 
       {me === undefined ? (
-        <span className="text-xs text-[var(--rp-muted)]">…</span>
+        <span className="text-xs text-[var(--rp-muted)]">{t("loading")}</span>
       ) : me ? (
         <div className="flex items-center gap-2">
           {me.avatar ? (
@@ -85,26 +92,28 @@ export function AuthBar() {
             onClick={logout}
             className="rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold text-[var(--rp-muted)] hover:border-[var(--rp-primary)]/40 hover:text-[var(--rp-fg)]"
           >
-            Déconnexion
+            {t("logout")}
           </button>
         </div>
       ) : (
         <div className="flex items-center gap-1">
           {showDiscord ? (
-            <Link
+            // eslint-disable-next-line @next/next/no-html-link-for-pages
+            <a
               href="/api/auth/discord"
               className="rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold text-[var(--rp-muted)] hover:border-[#5865F2]/50 hover:text-[var(--rp-fg)]"
             >
-              Discord
-            </Link>
+              {t("discord")}
+            </a>
           ) : null}
           {showSteam ? (
-            <Link
+            // eslint-disable-next-line @next/next/no-html-link-for-pages
+            <a
               href="/api/auth/steam"
               className="rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold text-[var(--rp-muted)] hover:border-[#66c0f4]/50 hover:text-[var(--rp-fg)]"
             >
-              Steam
-            </Link>
+              {t("steam")}
+            </a>
           ) : null}
         </div>
       )}

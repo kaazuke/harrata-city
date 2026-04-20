@@ -1,19 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { PageHero } from "@/components/layout/PageHero";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { Card, CardBody } from "@/components/ui/Card";
 import { StatsBars } from "@/components/stats/StatsBars";
 
 export default function StatistiquesPage() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
+  const t = useTranslations("stats");
   return (
     <div>
-      <PageHero
-        eyebrow="Statistiques"
-        title="Pilotage & transparence"
-        subtitle="Cartes réutilisables + graphique simple. Branchez une API FiveM / DB pour des données live."
-      />
+      <PageHero eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle")} />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -36,15 +34,15 @@ export default function StatistiquesPage() {
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
                 <div className="text-lg font-semibold text-[var(--rp-fg)]">
-                  Activité hebdomadaire (mock)
+                  {t("weeklyActivity")}
                 </div>
                 <div className="mt-1 text-sm text-[var(--rp-muted)]">
-                  Exemple de série temporelle — remplacez par vos agrégats.
+                  {t("weeklyActivityHint")}
                 </div>
               </div>
               <div className="text-xs text-[var(--rp-muted)]">
-                API suggérée :{" "}
-                <span className="font-mono">{config.server.metricsApiUrl || "NON CONFIGURÉE"}</span>
+                {t("apiSuggested")}
+                <span className="font-mono">{config.server.metricsApiUrl || t("notConfigured")}</span>
               </div>
             </div>
             <StatsBars />

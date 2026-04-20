@@ -8,7 +8,7 @@ import { AuthBar } from "@/components/auth/AuthBar";
 import { ThemeSwitcherExtension } from "@/components/extensions/ThemeSwitcherExtension";
 import { NotificationBell } from "@/components/forum/NotificationBell";
 import { useAccount } from "@/components/providers/AccountProvider";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { defaultSiteConfig } from "@/config/default-site";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
@@ -27,7 +27,7 @@ const NAV_I18N_KEYS: Record<string, string> = {
 };
 
 export function SiteHeader() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const { accounts, ready, hasPermission } = useAccount();
   const pathname = usePathname();
   const t = useTranslations("nav");

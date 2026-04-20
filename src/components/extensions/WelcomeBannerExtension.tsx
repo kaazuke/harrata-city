@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { getExtension, isExtensionEnabled } from "@/lib/extensions/manage";
 
@@ -16,6 +17,7 @@ const DISMISS_KEY = "ext:welcome-banner:dismissed-at";
 
 export function WelcomeBannerExtension() {
   const { config } = useSiteConfig();
+  const t = useTranslations("welcomeBanner");
   const [dismissedFor, setDismissedFor] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -33,9 +35,7 @@ export function WelcomeBannerExtension() {
 
   const ext = getExtension(config, "welcome-banner");
   const settings = (ext?.settings ?? {}) as BannerSettings;
-  const message =
-    settings.message?.trim() ||
-    "Bienvenue sur notre serveur RP — pensez à lire le règlement !";
+  const message = settings.message?.trim() || t("defaultMessage");
   if (settings.dismissible !== false && dismissedFor === ext?.installedAt) return null;
 
   const color = settings.color?.trim() || "#7aa2f7";
@@ -70,7 +70,7 @@ export function WelcomeBannerExtension() {
           color,
         }}
       >
-        Extension
+        {t("extension")}
       </span>
       <span className="text-balance">{message}</span>
       {showCta ? (
@@ -88,7 +88,7 @@ export function WelcomeBannerExtension() {
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Fermer la bannière"
+          aria-label={t("close")}
           className="ml-1 rounded-full border border-white/15 bg-black/20 px-2 py-0.5 text-[10px] text-[var(--rp-muted)] hover:bg-black/40 hover:text-[var(--rp-fg)]"
         >
           ✕

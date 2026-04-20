@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { PageHero } from "@/components/layout/PageHero";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { Avatar } from "@/components/account/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -28,19 +29,21 @@ const TIER_ORDER: Record<StaffMember["tier"], number> = {
   support: 4,
 };
 
-function tierLabel(t: StaffMember["tier"]) {
-  switch (t) {
-    case "founder":
-      return "Direction";
-    case "admin":
-      return "Administration";
-    case "mod":
-      return "Modération";
-    case "dev":
-      return "Développement";
-    default:
-      return "Support";
-  }
+function makeTierLabel(tiers: Record<string, string>) {
+  return (t: StaffMember["tier"]) => {
+    switch (t) {
+      case "founder":
+        return tiers.direction;
+      case "admin":
+        return tiers.administration;
+      case "mod":
+        return tiers.moderation;
+      case "dev":
+        return tiers.development;
+      default:
+        return tiers.support;
+    }
+  };
 }
 
 function tierTone(t: StaffMember["tier"]): "primary" | "accent" | "success" | "neutral" {
@@ -56,15 +59,19 @@ function tierFromRole(role: RoleDefinition): StaffMember["tier"] {
   return "support";
 }
 
-function accountToStaff(acc: Account, role: RoleDefinition): DisplayStaff {
+function accountToStaff(
+  acc: Account,
+  role: RoleDefinition,
+  defaultBios: { admin: string; moderator: string; member: string },
+): DisplayStaff {
   const tier = tierFromRole(role);
   const display = acc.profile.displayName?.trim() || acc.username;
   const fallbackBio =
     role.tier === "admin"
-      ? "Administrateur de la communauté."
+      ? defaultBios.admin
       : role.tier === "moderator"
-        ? "Modérateur de la communauté."
-        : `Membre de l'équipe (${role.label}).`;
+        ? defaultBios.moderator
+        : defaultBios.member.replace("{role}", role.label);
   return {
     id: `acc:${acc.id}`,
     name: display,
@@ -84,9 +91,23 @@ function dedupKey(s: DisplayStaff): string {
 }
 
 export default function EquipePage() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const { accounts, roleDefOf } = useAccount();
+  const t = useTranslations("team");
+  const locale = useLocale();
   const auto = config.modules.staffAutoFromAccounts !== false;
+
+  const tierLabel = useMemo(
+    () =>
+      makeTierLabel({
+        direction: t("tiers.direction"),
+        administration: t("tiers.administration"),
+        moderation: t("tiers.moderation"),
+        development: t("tiers.development"),
+        support: t("tiers.support"),
+      }),
+    [t],
+  );
 
   const list = useMemo<DisplayStaff[]>(() => {
     const manual: DisplayStaff[] = (config.staff ?? []).map((m) => ({
@@ -96,10 +117,16 @@ export default function EquipePage() {
 
     if (!auto) return manual;
 
+    const defaultBios = {
+      admin: t("defaultBio.admin"),
+      moderator: t("defaultBio.moderator"),
+      member: t("defaultBio.member"),
+    };
+
     const fromAccounts: DisplayStaff[] = accounts
       .map((a) => ({ acc: a, role: roleDefOf(a.role) }))
       .filter(({ role }) => roleHasPermission(role, "staff.show"))
-      .map(({ acc, role }) => accountToStaff(acc, role));
+      .map(({ acc, role }) => accountToStaff(acc, role, defaultBios));
 
     const seen = new Set(manual.map(dedupKey));
     const merged = [...manual];
@@ -112,21 +139,20 @@ export default function EquipePage() {
     return merged.sort((a, b) => {
       const tier = TIER_ORDER[a.tier] - TIER_ORDER[b.tier];
       if (tier !== 0) return tier;
-      return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+      return a.name.localeCompare(b.name, locale === "en" ? "en" : "fr", {
+        sensitivity: "base",
+      });
     });
-  }, [config.staff, accounts, auto, roleDefOf]);
+  }, [config.staff, accounts, auto, roleDefOf, t, locale]);
 
   return (
     <div>
-      <PageHero
-        eyebrow="Équipe"
-        title="Des humains derrière la machine"
-      />
+      <PageHero eyebrow={t("eyebrow")} title={t("title")} />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
         {list.length === 0 ? (
           <p className="rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-black/20 px-4 py-8 text-center text-sm text-[var(--rp-muted)]">
-            Aucun membre du staff pour le moment.
+            {t("empty")}
           </p>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">

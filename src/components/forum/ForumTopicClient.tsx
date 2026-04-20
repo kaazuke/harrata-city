@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { defaultSiteConfig } from "@/config/default-site";
 import {
@@ -26,7 +28,7 @@ import {
 import { appendForumLog, type LogActor } from "@/lib/forum-logs";
 import { notifyReply } from "@/lib/forum-notifications";
 import { canViewCategory } from "@/lib/forum-access";
-import type { ForumLogAction, ForumReaction } from "@/config/types";
+import type { ForumLogAction, ForumReaction, SiteConfig } from "@/config/types";
 import type { Account } from "@/lib/account/types";
 import { Reactions } from "@/components/forum/Reactions";
 import { Avatar } from "@/components/account/Avatar";
@@ -43,8 +45,10 @@ export function ForumTopicClient() {
   const router = useRouter();
   const categoryId = typeof params.categoryId === "string" ? params.categoryId : "";
   const topicId = typeof params.topicId === "string" ? params.topicId : "";
-  const { config, setConfig, persist } = useSiteConfig();
+  const { config: rawConfig, setConfig, persist } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const { user, roleDef, hasPermission, findByUsername } = useAccount();
+  const t = useTranslations("forum.topic");
   const canModerate = hasPermission("forum.moderate");
   const canReply = hasPermission("forum.reply");
   const categories = Array.isArray(config.forumCategories)
@@ -52,7 +56,7 @@ export function ForumTopicClient() {
     : defaultSiteConfig.forumCategories;
   const topics = Array.isArray(config.forumTopics) ? config.forumTopics : defaultSiteConfig.forumTopics;
 
-  const topic = useMemo(() => topics.find((t) => t.id === topicId) ?? null, [topics, topicId]);
+  const topic = useMemo(() => topics.find((top) => top.id === topicId) ?? null, [topics, topicId]);
   const category = useMemo(
     () => categories.find((c) => c.id === (topic?.categoryId ?? categoryId)) ?? null,
     [categories, topic, categoryId],
@@ -69,12 +73,12 @@ export function ForumTopicClient() {
   useEffect(() => {
     if (!topic || viewedRef.current === topic.id) return;
     viewedRef.current = topic.id;
-    const next = forumIncrementViews(config, topic.id);
-    if (next !== config) {
+    const next = forumIncrementViews(rawConfig, topic.id);
+    if (next !== rawConfig) {
       setConfig(next);
       persist(next);
     }
-  }, [topic, config, setConfig, persist]);
+  }, [topic, rawConfig, setConfig, persist]);
 
   if (!config.modules.forum) {
     return <ForumDisabled />;
@@ -83,9 +87,9 @@ export function ForumTopicClient() {
   if (!topic || !category || topic.categoryId !== categoryId) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <h1 className="font-heading text-xl font-semibold text-[var(--rp-fg)]">Sujet introuvable</h1>
+        <h1 className="font-heading text-xl font-semibold text-[var(--rp-fg)]">{t("notFound")}</h1>
         <Link href="/forum" className="mt-4 inline-block text-sm font-semibold text-[var(--rp-primary)] hover:underline">
-          ← Forum
+          {t("backToForum")}
         </Link>
       </div>
     );
@@ -94,13 +98,10 @@ export function ForumTopicClient() {
   if (!canViewCategory(category, roleDef)) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <h1 className="font-heading text-xl font-semibold text-[var(--rp-fg)]">Catégorie privée</h1>
-        <p className="mt-2 text-sm text-[var(--rp-muted)]">
-          Cette catégorie est réservée à l’équipe. Contactez un administrateur si
-          vous pensez qu’il s’agit d’une erreur.
-        </p>
+        <h1 className="font-heading text-xl font-semibold text-[var(--rp-fg)]">{t("privateTitle")}</h1>
+        <p className="mt-2 text-sm text-[var(--rp-muted)]">{t("privateBody")}</p>
         <Link href="/forum" className="mt-4 inline-block text-sm font-semibold text-[var(--rp-primary)] hover:underline">
-          ← Retour au forum
+          {t("backToForumLink")}
         </Link>
       </div>
     );
@@ -119,19 +120,19 @@ export function ForumTopicClient() {
     setErr(null);
     const a = actor();
     if (!user || !a) {
-      setErr("Connectez-vous pour répondre.");
+      setErr(t("loginToReply"));
       return;
     }
     if (!canReply) {
-      setErr("Votre rôle n'autorise pas les réponses.");
+      setErr(t("roleCantReply"));
       return;
     }
-    const next = forumAppendReply(config, topicId, user.username, body);
-    if (next === config) {
-      setErr(topic && topic.locked ? "Sujet verrouillé." : "Le message ne peut pas être vide.");
+    const next = forumAppendReply(rawConfig, topicId, user.username, body);
+    if (next === rawConfig) {
+      setErr(topic && topic.locked ? t("topicLocked") : t("messageEmpty"));
       return;
     }
-    const updatedTopic = next.forumTopics.find((t) => t.id === topicId) ?? null;
+    const updatedTopic = next.forumTopics.find((top) => top.id === topicId) ?? null;
     const newReply = updatedTopic?.replies[updatedTopic.replies.length - 1];
     const withLog = appendForumLog(next, {
       actor: a,
@@ -152,8 +153,8 @@ export function ForumTopicClient() {
 
   function toggleTopicReaction(emoji: string) {
     if (!user || !hasPermission("forum.react")) return;
-    const next = forumToggleTopicReaction(config, topic!.id, emoji, user.username);
-    if (next === config) return;
+    const next = forumToggleTopicReaction(rawConfig, topic!.id, emoji, user.username);
+    if (next === rawConfig) return;
     setConfig(next);
     persist(next);
   }
@@ -161,34 +162,23 @@ export function ForumTopicClient() {
   function toggleReplyReaction(replyId: string, emoji: string) {
     if (!user || !hasPermission("forum.react")) return;
     const next = forumToggleReplyReaction(
-      config,
+      rawConfig,
       topic!.id,
       replyId,
       emoji,
       user.username,
     );
-    if (next === config) return;
+    if (next === rawConfig) return;
     setConfig(next);
     persist(next);
   }
 
-  function applyAndPersist(next: typeof config) {
-    if (next === config) return;
-    setConfig(next);
-    persist(next);
-  }
-
-  /**
-   * Applique une mutation puis enregistre une entrée de log.
-   * Retourne la nouvelle config (utile pour les actions qui font une navigation
-   * juste après et ne peuvent pas attendre l’auto-save de 250 ms).
-   */
   function applyWithLog(
-    next: typeof config,
+    next: SiteConfig,
     action: ForumLogAction,
     extras?: { replyId?: string; targetAuthor?: string; note?: string },
-  ): typeof config | null {
-    if (next === config) return null;
+  ): SiteConfig | null {
+    if (next === rawConfig) return null;
     const a = actor();
     const finalConfig = a
       ? appendForumLog(next, {
@@ -216,23 +206,21 @@ export function ForumTopicClient() {
     setTimeout(() => replyRef.current?.focus(), 50);
   }
 
+  const subtitle = `${t("by", { author: topic.author })} · ${formatForumDate(topic.createdAt)}${
+    topic.replies.length
+      ? t("lastActivity", { time: formatForumRelative(topicUpdatedAt(topic)) })
+      : ""
+  }`;
+
   return (
     <div>
-      <PageHero
-        eyebrow={category.title}
-        title={topic.title}
-        subtitle={`Par ${topic.author} · ${formatForumDate(topic.createdAt)}${
-          topic.replies.length
-            ? ` · dernière activité ${formatForumRelative(topicUpdatedAt(topic))}`
-            : ""
-        }`}
-      />
+      <PageHero eyebrow={category.title} title={topic.title} subtitle={subtitle} />
 
       <div className="mx-auto max-w-4xl px-4 py-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 text-sm">
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/forum" className="font-semibold text-[var(--rp-primary)] hover:underline">
-              Forum
+              {t("breadcrumbForum")}
             </Link>
             <span className="text-[var(--rp-muted)]">/</span>
             <Link href={`/forum/${categoryId}`} className="font-semibold text-[var(--rp-primary)] hover:underline">
@@ -240,9 +228,12 @@ export function ForumTopicClient() {
             </Link>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {topic.pinned ? <Badge tone="primary">Épinglé</Badge> : null}
-            {topic.locked ? <Badge tone="danger">Verrouillé</Badge> : null}
-            <Badge tone="neutral">{topic.views ?? 0} vues</Badge>
+            {topic.pinned ? <Badge tone="primary">{t("pinned")}</Badge> : null}
+            {topic.locked ? <Badge tone="danger">{t("locked")}</Badge> : null}
+            <Badge tone="neutral">
+              {topic.views ?? 0}
+              {t("views")}
+            </Badge>
           </div>
         </div>
 
@@ -257,6 +248,7 @@ export function ForumTopicClient() {
           reactions={topic.reactions}
           currentUser={user?.username}
           onToggleReaction={user && hasPermission("forum.react") ? toggleTopicReaction : undefined}
+          labels={{ save: t("save"), cancel: t("cancel") }}
           actions={
             <div className="flex flex-wrap gap-2">
               {!topic.locked && user ? (
@@ -265,7 +257,7 @@ export function ForumTopicClient() {
                   onClick={() => quote(topic.author, topic.body)}
                   className="text-xs font-semibold text-[var(--rp-primary)] hover:underline"
                 >
-                  Citer
+                  {t("quote")}
                 </button>
               ) : null}
               {isMine(topic.author) ? (
@@ -277,7 +269,7 @@ export function ForumTopicClient() {
                   }}
                   className="text-xs font-semibold text-[var(--rp-muted)] hover:underline"
                 >
-                  Modifier
+                  {t("edit")}
                 </button>
               ) : null}
               {canModerate ? (
@@ -286,27 +278,27 @@ export function ForumTopicClient() {
                     type="button"
                     onClick={() =>
                       applyWithLog(
-                        forumTogglePinned(config, topic.id),
+                        forumTogglePinned(rawConfig, topic.id),
                         topic.pinned ? "topic_unpinned" : "topic_pinned",
                         { targetAuthor: topic.author },
                       )
                     }
                     className="text-xs font-semibold text-[var(--rp-muted)] hover:underline"
                   >
-                    {topic.pinned ? "Désépingler" : "Épingler"}
+                    {topic.pinned ? t("unpin") : t("pin")}
                   </button>
                   <button
                     type="button"
                     onClick={() =>
                       applyWithLog(
-                        forumToggleLocked(config, topic.id),
+                        forumToggleLocked(rawConfig, topic.id),
                         topic.locked ? "topic_unlocked" : "topic_locked",
                         { targetAuthor: topic.author },
                       )
                     }
                     className="text-xs font-semibold text-[var(--rp-muted)] hover:underline"
                   >
-                    {topic.locked ? "Déverrouiller" : "Verrouiller"}
+                    {topic.locked ? t("unlock") : t("lock")}
                   </button>
                 </>
               ) : null}
@@ -314,11 +306,11 @@ export function ForumTopicClient() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!confirm("Supprimer ce sujet et toutes ses réponses ?")) {
+                    if (!confirm(t("confirmDeleteTopic"))) {
                       return;
                     }
                     const applied = applyWithLog(
-                      forumDeleteTopic(config, topic.id),
+                      forumDeleteTopic(rawConfig, topic.id),
                       "topic_deleted",
                       { targetAuthor: topic.author, note: topic.title },
                     );
@@ -329,7 +321,7 @@ export function ForumTopicClient() {
                   }}
                   className="text-xs font-semibold text-[var(--rp-danger)] hover:underline"
                 >
-                  Supprimer
+                  {t("delete")}
                 </button>
               ) : null}
             </div>
@@ -340,7 +332,7 @@ export function ForumTopicClient() {
           onCancelEdit={() => setEditingTopic(false)}
           onSaveEdit={() => {
             applyWithLog(
-              forumEditTopicBody(config, topic.id, editBuffer),
+              forumEditTopicBody(rawConfig, topic.id, editBuffer),
               "topic_edited",
               { targetAuthor: topic.author },
             );
@@ -350,10 +342,10 @@ export function ForumTopicClient() {
 
         <div className="mt-8 space-y-4">
           <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">
-            Réponses ({topic.replies.length})
+            {t("repliesCount", { count: topic.replies.length })}
           </h2>
           {topic.replies.length === 0 ? (
-            <p className="text-sm text-[var(--rp-muted)]">Soyez le premier à répondre.</p>
+            <p className="text-sm text-[var(--rp-muted)]">{t("firstToReply")}</p>
           ) : (
             topic.replies.map((r, idx) => (
               <PostBlock
@@ -365,6 +357,7 @@ export function ForumTopicClient() {
                 index={idx + 1}
                 reactions={r.reactions}
                 currentUser={user?.username}
+                labels={{ save: t("save"), cancel: t("cancel") }}
                 onToggleReaction={
                   user && hasPermission("forum.react")
                     ? (emoji) => toggleReplyReaction(r.id, emoji)
@@ -378,7 +371,7 @@ export function ForumTopicClient() {
                         onClick={() => quote(r.author, r.body)}
                         className="text-xs font-semibold text-[var(--rp-primary)] hover:underline"
                       >
-                        Citer
+                        {t("quote")}
                       </button>
                     ) : null}
                     {isMine(r.author) ? (
@@ -390,16 +383,16 @@ export function ForumTopicClient() {
                         }}
                         className="text-xs font-semibold text-[var(--rp-muted)] hover:underline"
                       >
-                        Modifier
+                        {t("edit")}
                       </button>
                     ) : null}
                     {isMine(r.author) || canModerate ? (
                       <button
                         type="button"
                         onClick={() => {
-                          if (confirm("Supprimer ce message ?")) {
+                          if (confirm(t("confirmDeletePost"))) {
                             applyWithLog(
-                              forumDeleteReply(config, topic.id, r.id),
+                              forumDeleteReply(rawConfig, topic.id, r.id),
                               "reply_deleted",
                               {
                                 replyId: r.id,
@@ -411,7 +404,7 @@ export function ForumTopicClient() {
                         }}
                         className="text-xs font-semibold text-[var(--rp-danger)] hover:underline"
                       >
-                        Supprimer
+                        {t("delete")}
                       </button>
                     ) : null}
                   </div>
@@ -422,7 +415,7 @@ export function ForumTopicClient() {
                 onCancelEdit={() => setEditingReplyId(null)}
                 onSaveEdit={() => {
                   applyWithLog(
-                    forumEditReply(config, topic.id, r.id, editBuffer),
+                    forumEditReply(rawConfig, topic.id, r.id, editBuffer),
                     "reply_edited",
                     { replyId: r.id, targetAuthor: r.author },
                   );
@@ -435,23 +428,26 @@ export function ForumTopicClient() {
 
         {topic.locked ? (
           <p className="mt-10 rounded-[var(--rp-radius)] border border-[color-mix(in_oklab,var(--rp-danger)_40%,var(--rp-border))] bg-[color-mix(in_oklab,var(--rp-danger)_10%,transparent)] px-4 py-3 text-sm text-[var(--rp-fg)]">
-            Ce sujet est verrouillé. Aucune réponse ne peut y être ajoutée.
+            {t("lockedCta")}
           </p>
         ) : !user ? (
           <p className="mt-10 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-[color-mix(in_oklab,var(--rp-surface)_75%,transparent)] px-4 py-3 text-sm text-[var(--rp-muted)]">
-            Connectez-vous pour répondre.
+            {t("loginToReply")}
           </p>
         ) : (
           <Card className="mt-10">
             <CardBody>
-              <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">Répondre</h2>
+              <h2 className="font-heading text-base font-semibold text-[var(--rp-fg)]">
+                {t("reply")}
+              </h2>
               <form className="mt-4 space-y-4" onSubmit={submitReply}>
                 <p className="text-xs text-[var(--rp-muted)]">
-                  Vous répondez en tant que{" "}
-                  <span className="font-semibold text-[var(--rp-fg)]">@{user.username}</span>.
+                  {t("replyingAs", { name: `@${user.username}` })}
                 </p>
                 <div>
-                  <label className="text-xs font-semibold text-[var(--rp-muted)]">Message</label>
+                  <label className="text-xs font-semibold text-[var(--rp-muted)]">
+                    {t("messageLabel")}
+                  </label>
                   <Textarea
                     ref={replyRef}
                     className="mt-2 min-h-[8rem]"
@@ -461,7 +457,7 @@ export function ForumTopicClient() {
                   />
                 </div>
                 {err ? <p className="text-xs text-[var(--rp-danger)]">{err}</p> : null}
-                <Button type="submit">Envoyer la réponse</Button>
+                <Button type="submit">{t("sendReply")}</Button>
               </form>
             </CardBody>
           </Card>
@@ -487,6 +483,7 @@ function PostBlock({
   reactions,
   currentUser,
   onToggleReaction,
+  labels,
 }: {
   author: string;
   authorAccount?: Account | null;
@@ -503,6 +500,7 @@ function PostBlock({
   onEditBufferChange?: (v: string) => void;
   onCancelEdit?: () => void;
   onSaveEdit?: () => void;
+  labels: { save: string; cancel: string };
 }) {
   const display = authorAccount?.profile.displayName || author;
   const accent = authorAccount?.profile.color;
@@ -549,10 +547,10 @@ function PostBlock({
                 />
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" onClick={() => onSaveEdit?.()}>
-                    Enregistrer
+                    {labels.save}
                   </Button>
                   <Button type="button" variant="ghost" onClick={() => onCancelEdit?.()}>
-                    Annuler
+                    {labels.cancel}
                   </Button>
                 </div>
               </div>

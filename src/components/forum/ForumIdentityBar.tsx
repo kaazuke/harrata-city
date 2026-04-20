@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { Avatar } from "@/components/account/Avatar";
 import { RoleBadge } from "@/components/account/RoleBadge";
 
 export function ForumIdentityBar() {
   const { ready, user } = useAccount();
+  const t = useTranslations("forum.identityBar");
 
   if (!ready) {
     return (
@@ -20,21 +22,19 @@ export function ForumIdentityBar() {
   if (!user) {
     return (
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--rp-radius)] border border-[var(--rp-border)] bg-[color-mix(in_oklab,var(--rp-surface)_75%,transparent)] px-4 py-3 text-sm">
-        <div className="text-[var(--rp-muted)]">
-          Vous n’êtes pas connecté. Créez un compte pour publier sur le forum.
-        </div>
+        <div className="text-[var(--rp-muted)]">{t("notLogged")}</div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/connexion"
             className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-[var(--rp-fg)] hover:bg-white/10"
           >
-            Connexion
+            {t("login")}
           </Link>
           <Link
             href="/inscription"
             className="rounded-full bg-[var(--rp-primary)] px-3 py-1.5 text-xs font-semibold text-[#041016] hover:brightness-110"
           >
-            Créer un compte
+            {t("signup")}
           </Link>
         </div>
       </div>
@@ -59,7 +59,7 @@ export function ForumIdentityBar() {
         href="/compte"
         className="text-xs font-semibold text-[var(--rp-primary)] hover:underline"
       >
-        Modifier mon profil
+        {t("editProfile")}
       </Link>
     </div>
   );

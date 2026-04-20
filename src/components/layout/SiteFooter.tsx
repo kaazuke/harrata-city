@@ -2,11 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { defaultSiteConfig } from "@/config/default-site";
 
 export function SiteFooter() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const lc = config.layoutCopy ?? defaultSiteConfig.layoutCopy;
   const t = useTranslations("nav");
   const year = new Date().getFullYear();

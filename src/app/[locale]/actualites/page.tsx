@@ -1,17 +1,20 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardBody } from "@/components/ui/Card";
 
 const categories = ["all", "patch", "news", "event", "community"] as const;
+type Category = (typeof categories)[number];
 
 export default function ActualitesPage() {
-  const { config } = useSiteConfig();
-  const [cat, setCat] = useState<(typeof categories)[number]>("all");
+  const { config } = useLocalizedConfig();
+  const t = useTranslations("news");
+  const [cat, setCat] = useState<Category>("all");
 
   const items = useMemo(() => {
     const sorted = [...config.articles].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -21,13 +24,14 @@ export default function ActualitesPage() {
     return sorted.filter((a) => a.category === cat);
   }, [config.articles, cat]);
 
+  const label = (c: Category) => {
+    if (c === "all") return t("all");
+    return t(`categories.${c}` as "categories.patch");
+  };
+
   return (
     <div>
-      <PageHero
-        eyebrow="Actualités"
-        title="Patch notes, annonces, événements"
-        subtitle="Catégories, mise en avant, et pages article prêtes pour un futur CMS."
-      />
+      <PageHero eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle")} />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="flex flex-wrap gap-2">
@@ -42,7 +46,7 @@ export default function ActualitesPage() {
                   : "border-[var(--rp-border)] text-[var(--rp-muted)] hover:bg-white/5"
               }`}
             >
-              {c === "all" ? "Tout" : c}
+              {label(c)}
             </button>
           ))}
         </div>
@@ -53,8 +57,8 @@ export default function ActualitesPage() {
               <Card className="h-full transition hover:border-[color-mix(in_oklab,var(--rp-primary)_45%,var(--rp-border))]">
                 <CardBody>
                   <div className="flex items-center justify-between gap-3">
-                    <Badge tone="primary">{a.category}</Badge>
-                    {a.featured ? <Badge tone="accent">À la une</Badge> : null}
+                    <Badge tone="primary">{label(a.category as Category)}</Badge>
+                    {a.featured ? <Badge tone="accent">{t("featured")}</Badge> : null}
                     <span className="text-xs text-[var(--rp-muted)]">{a.date}</span>
                   </div>
                   <div className="mt-3 text-lg font-semibold text-[var(--rp-fg)]">

@@ -4,14 +4,14 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageHero } from "@/components/layout/PageHero";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { Card, CardBody } from "@/components/ui/Card";
 import type { PresentationMedia } from "@/config/types";
 
 type LoreItem = { title: string; body: string };
 
 export default function PresentationPage() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const t = useTranslations("presentation");
   const media: PresentationMedia[] = config.presentationMedia ?? [];
 

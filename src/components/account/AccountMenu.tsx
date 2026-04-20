@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { Avatar } from "@/components/account/Avatar";
 import { RoleBadge } from "@/components/account/RoleBadge";
@@ -12,6 +12,7 @@ export function AccountMenu() {
   const router = useRouter();
   const pathname = usePathname();
   const { ready, user, logout, hasPermission } = useAccount();
+  const t = useTranslations("auth.menu");
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -73,13 +74,13 @@ export function AccountMenu() {
           href="/connexion"
           className="rounded-full border border-white/12 px-3 py-2 text-xs font-semibold text-[var(--rp-muted)] transition hover:border-[color-mix(in_oklab,var(--rp-primary)_40%,var(--rp-border))] hover:text-[var(--rp-fg)]"
         >
-          Connexion
+          {t("login")}
         </Link>
         <Link
           href="/inscription"
           className="rounded-full bg-[var(--rp-primary)] px-3 py-2 text-xs font-semibold text-[#041016] transition hover:brightness-110"
         >
-          Créer un compte
+          {t("register")}
         </Link>
       </div>
     );
@@ -133,7 +134,7 @@ export function AccountMenu() {
                   onClick={() => setOpen(false)}
                   className="block px-4 py-2 text-[var(--rp-fg)] hover:bg-white/[0.06]"
                 >
-                  Mon profil
+                  {t("profile")}
                 </Link>
                 {hasPermission("admin.access") ? (
                   <Link
@@ -142,7 +143,7 @@ export function AccountMenu() {
                     onClick={() => setOpen(false)}
                     className="block px-4 py-2 text-[var(--rp-fg)] hover:bg-white/[0.06]"
                   >
-                    Panneau admin
+                    {t("adminPanel")}
                   </Link>
                 ) : null}
                 <button
@@ -155,7 +156,7 @@ export function AccountMenu() {
                     router.push("/");
                   }}
                 >
-                  Se déconnecter
+                  {t("logout")}
                 </button>
               </div>
             </div>,

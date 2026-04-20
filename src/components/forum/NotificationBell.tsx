@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useAccount } from "@/components/providers/AccountProvider";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { Avatar } from "@/components/account/Avatar";
@@ -20,6 +21,7 @@ import {
 export function NotificationBell() {
   const { user, findByUsername } = useAccount();
   const { config, setConfig, persist } = useSiteConfig();
+  const t = useTranslations("forum.notifications");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
@@ -107,7 +109,7 @@ export function NotificationBell() {
       <button
         ref={buttonRef}
         type="button"
-        aria-label={`Notifications${unread ? ` (${unread} non lues)` : ""}`}
+        aria-label={unread > 0 ? t("ariaLabelUnread", { count: unread }) : t("ariaLabel")}
         onClick={handleOpen}
         className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-[var(--rp-fg)] transition hover:bg-white/[0.06]"
       >
@@ -138,12 +140,10 @@ export function NotificationBell() {
               <div className="flex items-center justify-between border-b border-[var(--rp-border)] px-4 py-3">
                 <div>
                   <div className="text-sm font-semibold text-[var(--rp-fg)]">
-                    Notifications
+                    {t("title")}
                   </div>
                   <div className="text-[11px] text-[var(--rp-muted)]">
-                    {notifs.length === 0
-                      ? "Aucune notification"
-                      : `${notifs.length} au total`}
+                    {notifs.length === 0 ? t("empty") : t("total", { count: notifs.length })}
                   </div>
                 </div>
                 {notifs.length > 0 ? (
@@ -152,7 +152,7 @@ export function NotificationBell() {
                     onClick={handleClearAll}
                     className="text-[11px] font-semibold text-[var(--rp-muted)] hover:text-[var(--rp-fg)]"
                   >
-                    Tout effacer
+                    {t("clearAll")}
                   </button>
                 ) : null}
               </div>
@@ -160,7 +160,7 @@ export function NotificationBell() {
               <ul className="max-h-[60vh] divide-y divide-[var(--rp-border)] overflow-y-auto">
                 {notifs.length === 0 ? (
                   <li className="px-4 py-8 text-center text-xs text-[var(--rp-muted)]">
-                    Quand quelqu’un répondra à un de vos sujets, vous le verrez ici.
+                    {t("emptyDescription")}
                   </li>
                 ) : (
                   notifs.map((n) => {
@@ -180,8 +180,8 @@ export function NotificationBell() {
                           <div className="text-xs text-[var(--rp-muted)]">
                             <span className="font-semibold text-[var(--rp-fg)]">
                               @{n.actor}
-                            </span>{" "}
-                            a répondu à votre sujet
+                            </span>
+                            {t("replied")}
                           </div>
                           {n.topicTitle ? (
                             <div className="mt-0.5 truncate text-sm font-medium text-[var(--rp-fg)]">
@@ -202,7 +202,7 @@ export function NotificationBell() {
                         </div>
                         <button
                           type="button"
-                          aria-label="Supprimer cette notification"
+                          aria-label={t("deleteOne")}
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();

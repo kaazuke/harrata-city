@@ -1,6 +1,7 @@
 "use client";
 
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useLocale, useTranslations } from "next-intl";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { defaultSiteConfig } from "@/config/default-site";
 import { Button } from "@/components/ui/Button";
 
@@ -78,8 +79,10 @@ export function HeroServerPanel({
   /** Hostname retourné par Cfx.re (optionnel, affiché en sous-titre si présent). */
   hostname?: string | null;
 }) {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const lc = config.layoutCopy ?? defaultSiteConfig.layoutCopy;
+  const t = useTranslations("serverPanel");
+  const locale = useLocale();
 
   const cap = Number(maxPlayers);
   const safeMax = Number.isFinite(cap) && cap > 0 ? cap : 0;
@@ -133,8 +136,12 @@ export function HeroServerPanel({
               className="flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--rp-success)_45%,transparent)] bg-[color-mix(in_oklab,var(--rp-success)_12%,transparent)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-[var(--rp-success)]"
               title={
                 lastUpdatedAt
-                  ? `Synchronisé à ${new Date(lastUpdatedAt).toLocaleTimeString("fr-FR")}`
-                  : "Synchronisé en direct"
+                  ? t("syncedAt", {
+                      time: new Date(lastUpdatedAt).toLocaleTimeString(
+                        locale === "en" ? "en-US" : "fr-FR",
+                      ),
+                    })
+                  : t("syncedLive")
               }
             >
               <span className="relative flex h-2 w-2">
@@ -145,14 +152,14 @@ export function HeroServerPanel({
             </span>
           ) : liveMode === "loading" ? (
             <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/55">
-              Sync…
+              {t("sync")}
             </span>
           ) : liveMode === "error" ? (
             <span
               className="rounded-full border border-[color-mix(in_oklab,var(--rp-danger)_45%,transparent)] bg-[color-mix(in_oklab,var(--rp-danger)_12%,transparent)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-[var(--rp-danger)]"
-              title="API injoignable — valeurs de secours affichées"
+              title={t("apiUnreachable")}
             >
-              Offline API
+              {t("offlineApi")}
             </span>
           ) : status === "online" ? (
             <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/55">

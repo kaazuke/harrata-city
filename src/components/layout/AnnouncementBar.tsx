@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useTranslations } from "next-intl";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { defaultSiteConfig } from "@/config/default-site";
 
 const ROTATION_MS = 6000;
 
 export function AnnouncementBar() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
   const lc = config.layoutCopy ?? defaultSiteConfig.layoutCopy;
+  const t = useTranslations("announcementBar");
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -44,7 +46,7 @@ export function AnnouncementBar() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       role="region"
-      aria-label="Annonces"
+      aria-label={t("ariaLabel")}
     >
       <div
         key={`${index}-${current.id ?? current.text}`}
@@ -69,7 +71,7 @@ export function AnnouncementBar() {
                   ? "w-6 bg-[var(--rp-primary)]"
                   : "w-1.5 bg-white/20 hover:bg-white/40"
               }`}
-              aria-label={`Annonce ${i + 1} sur ${actives.length}`}
+              aria-label={t("announcementOf", { current: i + 1, total: actives.length })}
               aria-current={i === index}
             />
           ))}

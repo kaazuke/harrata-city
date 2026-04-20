@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
+import { useTranslations } from "next-intl";
+import { useLocalizedConfig } from "@/components/providers/useLocalizedConfig";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 
 export function RulesClient() {
-  const { config } = useSiteConfig();
+  const { config } = useLocalizedConfig();
+  const t = useTranslations("rules");
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -29,12 +31,12 @@ export function RulesClient() {
     <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="max-w-xl">
         <label className="text-xs font-semibold text-[var(--rp-muted)]">
-          Recherche interne
+          {t("searchLabel")}
         </label>
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Ex: meta, whitelist, staff…"
+          placeholder={t("searchPlaceholder")}
           className="mt-2"
         />
       </div>
@@ -61,8 +63,9 @@ export function RulesClient() {
       </div>
 
       <div className="mt-10 text-xs text-[var(--rp-muted)]">
-        Astuce : utilisez les ancres d URL <span className="font-mono">#general</span>{" "}
-        pour partager une section.
+        {t.rich("anchorHint", {
+          example: (chunks) => <span className="font-mono">{chunks}</span>,
+        })}
       </div>
     </div>
   );
