@@ -6,6 +6,7 @@ import { AccountProvider } from "@/components/providers/AccountProvider";
 import { SiteConfigProvider } from "@/components/providers/SiteConfigProvider";
 import { OAuthSync } from "@/components/account/OAuthSync";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
+import { BetaBanner } from "@/components/layout/BetaBanner";
 import { WelcomeBannerExtension } from "@/components/extensions/WelcomeBannerExtension";
 import { ExtensionsHost } from "@/components/extensions/ExtensionsHost";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
@@ -86,6 +87,7 @@ export default function RootLayout({
             </Suspense>
             <RoutePrefetcher />
             <WelcomeBannerExtension />
+            <BetaBanner />
             <AnnouncementBar />
             <SiteHeader />
             <main className="isolate min-h-[60vh] pb-6 sm:pb-10">{children}</main>
