@@ -83,9 +83,7 @@ Communauté portée par une équipe bénévole passionnée :
 
 ## 📸 Screenshots
 
-![Page d'accueil — hero, navigation, statut serveur](https://fivem-rp-community.vercel.app/brand/forum-cover-fivem.png)
-
-> *Tu peux ajouter d’autres captures (in-game, forum, admin) en dessous après déploiement de l’image sur ton dépôt.*
+La **bannière en haut du message** montre déjà la page d’accueil (hero, navigation, widget statut serveur). Tu peux ajouter d’autres captures (in-game, forum, admin) en réponse ou en éditant ce fichier après les avoir hébergées (même dossier `public/brand/` ou upload forum).
 
 ## ❓ FAQ rapide
 
@@ -114,8 +112,6 @@ R : Pic de 18h à 2h en semaine, journée et soirée le weekend.
 ---
 
 # 🌃 Harrata City — A city that never sleeps. Your story might.
-
-![Harrata City — FiveM community hub (site preview)](https://fivem-rp-community.vercel.app/brand/forum-cover-fivem.png)
 
 > **French-speaking FiveM Roleplay server · Narrative · Whitelist · Free beta**
 
