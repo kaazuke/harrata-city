@@ -15,6 +15,7 @@ import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 const NAV_I18N_KEYS: Record<string, string> = {
   home: "home",
   presentation: "presentation",
+  hubOpenSource: "hubOpenSource",
   reglement: "rules",
   candidatures: "applications",
   boutique: "shop",

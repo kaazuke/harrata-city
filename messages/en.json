@@ -1,7 +1,7 @@
 {
   "meta": {
-    "tagline": "FiveM RP Community Hub",
-    "description": "Harrata City — FiveM Roleplay server: living economy, factions, jobs and realistic urban experience."
+    "tagline": "Demo — FiveM community hub (open source)",
+    "description": "Interactive preview of the Next.js template: pages, admin, forum and news are sample content to replace for your server."
   },
   "nav": {
     "home": "Home",
@@ -15,6 +15,7 @@
     "gallery": "Gallery",
     "stats": "Stats",
     "contact": "Contact",
+    "hubOpenSource": "Open-source hub",
     "admin": "Admin",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
@@ -22,11 +23,11 @@
     "mobileNavigation": "Mobile navigation"
   },
   "betaBanner": {
-    "badge": "Beta",
-    "title": "Free access during beta.",
-    "description": "Join the whitelist, no purchase required, zero pay-to-win.",
-    "cta": "Apply →",
-    "dismiss": "Dismiss beta banner"
+    "badge": "Demo",
+    "title": "Template demonstration site.",
+    "description": "All content is fictional: browse pages to see the UI, then clone the GitHub repository.",
+    "cta": "Open-source hub →",
+    "dismiss": "Dismiss banner"
   },
   "languageSwitcher": {
     "label": "Language",
@@ -38,7 +39,7 @@
     "announcementOf": "Announcement {current} of {total}"
   },
   "welcomeBanner": {
-    "defaultMessage": "Welcome to our RP server — don't forget to read the rules!",
+    "defaultMessage": "Welcome to the hub demo — copy is sample data editable in the admin.",
     "extension": "Extension",
     "close": "Close banner"
   },
@@ -54,6 +55,65 @@
     "retry": "Try again",
     "home": "Home",
     "storageHint": "If you customized the site in admin: try clearing the local storage (F12 → Application → Local Storage → delete « <key>rp-site-config-full</key> ») then reload."
+  },
+  "hubOpenSource": {
+    "metaTitle": "Open-source hub — Next.js template for FiveM communities",
+    "metaDescription": "Showcase site, admin panel, forum, Discord/Steam auth: open-source project you can fork for your RP server — not a server recruitment ad.",
+    "eyebrow": "Project",
+    "title": "FiveM community hub — open-source template",
+    "subtitle": "This page describes the GitHub repo and the live technical demo. It is not advertising a specific server: it is a template for creators and staff.",
+    "intro1": "Need a full website for your FiveM community without starting from scratch? This repo ships a Next.js 15 (App Router), React 19, TypeScript and Tailwind base: public pages, theming, FR/EN i18n, content admin, built-in forum, Discord and Steam authentication.",
+    "intro2": "This live instance is a technical showcase: replace name, logo, colours and content from the admin or by forking the repository.",
+    "intro3": "Use the section below to copy a direct link to this page when posting on forum.cfx.re or elsewhere — readers immediately see it is about the technical project, not player recruitment.",
+    "stackTitle": "Stack & principles",
+    "stackDescription": "Modern, typed, deployable on Vercel or Node.",
+    "stackItems": [
+      "Next.js 15 (App Router), React 19, TypeScript",
+      "Tailwind CSS 4, editable theme and colours",
+      "next-intl — /en/… and /fr/… routes",
+      "Discord + Steam OAuth, linked accounts",
+      "Embedded forum (configurable storage), news, gallery, support tickets",
+      "API routes (contact, uploads, live FiveM server via Cfx.re / players.json)",
+      "MIT licence — see the repository"
+    ],
+    "featuresTitle": "What the template includes",
+    "featuresDescription": "Typical RP hub pages and modules — everything is optional or overridable.",
+    "features": [
+      {
+        "title": "Content without redeploying",
+        "description": "Copy, navigation, announcements, FAQ, rules, social links: much of it is driven from the admin panel (local storage / JSON export depending on your setup)."
+      },
+      {
+        "title": "Internationalisation",
+        "description": "Two built-in languages (FR/EN) with explicit URL prefixes to avoid mixed locales."
+      },
+      {
+        "title": "Forum & community",
+        "description": "Built-in forum, notifications, categories — useful for intros, staff applications and help."
+      },
+      {
+        "title": "FiveM integrations",
+        "description": "Server status (players, slots) via Cfx.re API and/or players.json endpoint — wire it to your server."
+      }
+    ],
+    "audienceTitle": "Who is it for?",
+    "audienceDescription": "Server creators, web developers and staff teams who want a clean, maintainable site.",
+    "audienceItems": [
+      "You want to document your RP project with a serious site (rules, news, Tebex shop, contact).",
+      "You prefer open code you can audit and extend rather than an opaque CMS.",
+      "You post on forum.cfx.re to share a tool with the community, not a “join my server” ad."
+    ],
+    "selfHostTitle": "Clone & deploy",
+    "selfHostDescription": "Repository README: install, environment variables, build and Vercel deployment.",
+    "selfHostBody": "Fork or clone https://github.com/kaazuke/harrata-city , configure OAuth secrets and URLs, then deploy. You are not required to keep the sample branding — replace name, logo and content in config.",
+    "linksTitle": "Useful links",
+    "githubLabel": "View on GitHub",
+    "demoLabel": "Back to home (demo)",
+    "forumShareTitle": "Link for your forum.cfx.re post",
+    "forumShareDescription": "Paste this URL in your topic (Releases, resources, or project showcase — follow forum rules). It points to this explanatory page, not a server ad.",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "legal": "Independent community project. Grand Theft Auto V and related marks belong to their owners. Not affiliated with Rockstar Games, Cfx.re or FiveM — see the repository README."
   },
   "auth": {
     "bar": {
@@ -102,19 +162,20 @@
   },
   "home": {
     "hero": {
-      "badge": "FiveM Roleplay",
+      "badge": "Interactive demo",
       "title": "Harrata City",
       "tagline": "The city never sleeps. Your story might.",
-      "description": "Harrata City — FiveM Roleplay server: living economy, factions, jobs and realistic urban experience.",
+      "description": "Title and slogan come from config: here they illustrate a typical instance. Replace them with your community name and pitch.",
+      "demoRibbon": "You are browsing an open-source template demo — no RP server is promoted here.",
       "ctaJoin": "Join (Cfx.re)",
       "ctaJoinAlt": "Join",
       "ctaDiscord": "Discord",
       "ctaForum": "Forum"
     },
     "why": {
-      "title": "Why join us",
-      "description": "Features and content managed from admin: text, Discord / Cfx.re links, Tebex, colors and modules.",
-      "cta": "Discover the project →"
+      "title": "What this demo shows",
+      "description": "Sample tiles and copy: the admin panel lets you adapt lore, Discord / Cfx.re links, Tebex, theme and navigation.",
+      "cta": "Open-source hub page →"
     },
     "features": [
       { "id": "quality", "icon": "shield", "title": "RP Quality", "description": "Coherent scenes, fair-play and responsive staff for lasting immersion." },
@@ -123,13 +184,13 @@
       { "id": "map", "icon": "map", "title": "Optimized map", "description": "Performance, clean props, clear RP zones and polished MLOs." }
     ],
     "forum": {
-      "title": "Community forum",
-      "description": "Chat with players: introductions, lore, scene ideas and mutual aid. Open a topic or reply — everything is saved with the site configuration (browser / JSON export).",
+      "title": "Forum (sample)",
+      "description": "Fictional threads to showcase the built-in forum — data follows your site configuration.",
       "cta": "Open the forum →",
       "categories": "Categories",
       "topics": "Topics",
-      "joinDiscussion": "Join the discussion",
-      "joinDiscussionDescription": "Introductions, lore, help — everyone can participate."
+      "joinDiscussion": "Browse demo forum",
+      "joinDiscussionDescription": "Ready for intros, help and applications once the site is yours."
     },
     "news": {
       "title": "Latest news",
@@ -143,34 +204,34 @@
   },
   "presentation": {
     "eyebrow": "About",
-    "title": "One server, one identity, one experience",
-    "subtitle": "Lore, philosophy, systems and media: everything that defines your RP world.",
-    "strengthsTitle": "Strengths",
-    "economyTitle": "Economy & gameplay",
-    "economyBlurb": "A circular economy: salaries, stocks, fictional taxes, gray market and real risks. Money has weight here.",
+    "title": "Showcase page (sample content)",
+    "subtitle": "These blocks show how to structure lore, strengths and media. Replace everything with your real project.",
+    "strengthsTitle": "Strengths (demo)",
+    "economyTitle": "Free-text block",
+    "economyBlurb": "Sample paragraph: here you would describe your server's economy or gameplay. Statistics on the site are also fictional.",
     "statsLink": "View statistics →",
     "mediaTitle": "Media",
-    "mediaDescription": "Images, videos and trailers — manageable from admin.",
+    "mediaDescription": "Illustration images / videos — replace with your in-game captures from the admin.",
     "mediaOpenGallery": "Open full gallery →",
     "mediaEmpty": "No media yet. Add some from Admin → Content → Presentation.",
     "errorInvalidYoutube": "Invalid YouTube ID",
     "youtubeVideo": "YouTube video",
     "missingUrl": "Missing URL",
     "lore": [
-      { "title": "Los Santos, differently", "body": "Every street here tells a story of debt, alliance or betrayal. You're not a scoreboard: you're a resident." },
-      { "title": "Philosophy", "body": "We prioritize narrative, respect for the setting, and slow but meaningful progression. Grinding isn't the protagonist." }
+      { "title": "Narrative block — sample", "body": "This paragraph is a layout placeholder. After install, tell your server's story here or import copy from the admin panel." },
+      { "title": "For GitHub visitors", "body": "This live demo lets you click everywhere safely: forum, rules, shop and forms are prefilled to show the UI." }
     ],
     "strengths": [
-      "Experienced & transparent staff",
-      "Internal tools (dispatch, records, companies)",
-      "Seasonality: narrative arcs & events",
-      "Anti-cheat & structured logs"
+      "Admin to edit copy, navigation and theme",
+      "News and forum ready to use",
+      "Configurable Discord / Steam auth",
+      "Vercel deployment documented in the README"
     ]
   },
   "rules": {
     "eyebrow": "Rules",
-    "title": "A clear framework for lasting RP",
-    "subtitle": "General, RP, staff and whitelist — search a keyword or share a section via its anchor.",
+    "title": "Sample rules page (demo)",
+    "subtitle": "Fictional categories to show layout. Replace everything with your real rules from the admin.",
     "searchLabel": "Search rules",
     "searchPlaceholder": "E.g. meta, whitelist, staff…",
     "anchorHint": "Tip: use URL anchors <example>#general</example> to share a section."
@@ -186,7 +247,7 @@
     },
     "eyebrow": "Applications",
     "title": "Apply cleanly, with no friction",
-    "subtitle": "Fields are controlled by the site configuration (admin). Set up a Discord webhook server-side to receive applications.",
+    "subtitle": "Sample forms: fields come from config. Add a Discord webhook to receive real applications.",
     "whitelistFormTitle": "Whitelist form",
     "whitelistFormHelp": "Fields are editable from admin.",
     "staffFormTitle": "Staff form",
@@ -194,10 +255,10 @@
   },
   "shop": {
     "eyebrow": "Shop",
-    "title": "Premium conversion, no pay-to-win",
-    "subtitle": "Tebex-ready structure: product cards, promo badges, and external purchase links.",
+    "title": "Shop grid (demo)",
+    "subtitle": "Fictional product cards to show badges, prices and perk lists. Connect your Tebex store in config.",
     "promo": "Promo",
-    "promoBanner": "Weekend offer: cosmetic bundles & priority support.",
+    "promoBanner": "Sample promo banner — editable in messages or admin.",
     "badges": {
       "vip": "VIP",
       "new": "New",

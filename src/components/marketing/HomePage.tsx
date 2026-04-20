@@ -96,6 +96,9 @@ export function HomePage() {
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
                 {config.meta.description}
               </p>
+              <p className="mt-4 max-w-2xl rounded-lg border border-white/15 bg-black/35 px-3 py-2 text-sm leading-relaxed text-white/85">
+                {t("hero.demoRibbon")}
+              </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 {config.social.cfx ? (
@@ -154,7 +157,7 @@ export function HomePage() {
         <SectionHeader
           title={t("why.title")}
           description={t("why.description")}
-          action={{ href: "/presentation", label: t("why.cta") }}
+          action={{ href: "/hub-open-source", label: t("why.cta") }}
         />
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

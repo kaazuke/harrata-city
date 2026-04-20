@@ -4,7 +4,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useEffect } from "react";
 import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 
-const ALWAYS = ["/", "/presentation", "/reglement", "/candidatures", "/boutique", "/equipe", "/actualites", "/galerie", "/statistiques", "/contact", "/forum", "/connexion", "/inscription", "/compte"];
+const ALWAYS = ["/", "/presentation", "/hub-open-source", "/reglement", "/candidatures", "/boutique", "/equipe", "/actualites", "/galerie", "/statistiques", "/contact", "/forum", "/connexion", "/inscription", "/compte"];
 
 /**
  * Prefetch silencieux des routes principales pour rendre la navigation instantanée.

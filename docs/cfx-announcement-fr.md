@@ -49,12 +49,12 @@ Le serveur est actuellement **en phase bêta** : **aucun VIP payant, aucun avant
 
 ### 📝 Comment rejoindre
 
-1. **Rejoins notre Discord** : [INVITE_DISCORD_ICI]
+1. **Rejoins notre Discord** : https://discord.gg/7XVtaRnpQe
 2. **Remplis le formulaire de whitelist** dans le salon `📝┃candidatures`
 3. **Réponse du staff sous 72h** — si validé, tu reçois l'IP et les instructions
 
 🔗 **Site officiel** : https://fivem-rp-community.vercel.app
-🔗 **Discord** : [INVITE_DISCORD_ICI]
+🔗 **Discord** : https://discord.gg/7XVtaRnpQe
 🔗 **GitHub (open-source)** : https://github.com/kaazuke/harrata-city
 
 ## 📋 Règlement essentiel
@@ -106,7 +106,7 @@ R : Pic de 18h à 2h en semaine, journée et soirée le weekend.
 
 > **La ville t'attend. Ton personnage aussi.**
 
-**Discord → [INVITE_DISCORD_ICI]**
+**Discord → https://discord.gg/7XVtaRnpQe**
 
 ---
 
@@ -148,12 +148,12 @@ The server is currently **in beta**: **no paid VIP, no advantages from money, ze
 
 ### 📝 How to join
 
-1. **Join our Discord** (English channels coming soon): [INVITE_DISCORD_HERE]
+1. **Join our Discord** (English channels coming soon): https://discord.gg/7XVtaRnpQe
 2. **Fill out the whitelist form** in the `📝┃candidatures` channel
 3. **Staff response within 72h** — if validated, you'll receive the IP and instructions
 
 🔗 **Official website**: https://fivem-rp-community.vercel.app/en
-🔗 **Discord**: [INVITE_DISCORD_HERE]
+🔗 **Discord**: https://discord.gg/7XVtaRnpQe
 🔗 **GitHub (open-source)**: https://github.com/kaazuke/harrata-city
 
 ## 📋 Essential rules
@@ -189,7 +189,7 @@ A: Understanding French is a big plus for immersion, but we have English-speakin
 
 > **The city is waiting for you. So is your character.**
 
-**Discord → [INVITE_DISCORD_HERE]**
+**Discord → https://discord.gg/7XVtaRnpQe**
 
 ---
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
-const STORAGE_KEY = "harrata:beta-banner-dismissed";
+const STORAGE_KEY = "rp-template:demo-banner-dismissed";
 
 /**
  * Bandeau de bêta gratuite affiché en haut du site.
@@ -63,7 +63,7 @@ export function BetaBanner() {
         </p>
 
         <Link
-          href="/candidatures"
+          href="/hub-open-source"
           className="hidden shrink-0 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white transition hover:bg-white/10 sm:inline-flex"
         >
           {t("cta")}

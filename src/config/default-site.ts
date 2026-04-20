@@ -1,53 +1,55 @@
 import { BUILTIN_ROLE_DEFINITIONS } from "@/lib/account/types";
 import type { SiteConfig } from "./types";
 
-/* IP & port publics du serveur FiveM — utilisés partout (admin panel, hero, players.json). */
-const FIVEM_SERVER_IP = "51.68.125.155";
-const FIVEM_SERVER_PORT = 30120;
-const FIVEM_SERVER_ENDPOINT = `${FIVEM_SERVER_IP}:${FIVEM_SERVER_PORT}`;
+/**
+ * Démo publique du template : pas d’IP réelle ni de /players.json par défaut.
+ * Branchez votre serveur depuis l’admin (code Cfx.re ou URL players.json).
+ */
+const DEMO_CONNECT_PLACEHOLDER = "connect votre-serveur.example:30120";
 
 export const defaultSiteConfig: SiteConfig = {
   locale: "fr",
   meta: {
-    siteName: "Harrata City",
-    slogan: "La ville ne dort jamais. Votre histoire, si.",
+    siteName: "Hub RP — démo",
+    slogan: "Aperçu du site communautaire FiveM (open source).",
     description:
-      "Harrata City — serveur FiveM Roleplay : économie vivante, factions, métiers et expérience urbaine réaliste.",
+      "Parcourez toutes les pages : ce sont des exemples pour montrer le rendu du template Next.js (admin, forum, actus, boutique…). Remplacez tout depuis le panneau admin ou le dépôt GitHub.",
     keywords: [
-      "Harrata City",
       "FiveM",
-      "GTA RP",
+      "hub communautaire",
+      "Next.js",
+      "template",
+      "open source",
+      "démo",
       "roleplay",
-      "whitelist",
-      "serveur français",
     ],
     ogImage: "/brand/logo-banner.png",
     logoUrl: "/brand/icon.png",
   },
   layoutCopy: {
-    headerTagline: "FiveM Roleplay",
-    announcementBadge: "Info",
-    homeHeroBadge: "FiveM Roleplay",
-    homeJoinCfx: "Rejoindre (Cfx.re)",
-    homeJoinNoLink: "Rejoindre",
+    headerTagline: "Démo template",
+    announcementBadge: "Démo",
+    homeHeroBadge: "Démo interactive",
+    homeJoinCfx: "Exemple Cfx.re",
+    homeJoinNoLink: "Bouton exemple",
     homeDiscord: "Discord",
-    homeSectionWhyTitle: "Pourquoi nous rejoindre",
+    homeSectionWhyTitle: "Ce que montre cette démo",
     homeSectionWhyDesc:
-      "Fonctionnalités et contenus pilotés depuis l’admin : textes, liens Discord / Cfx.re, Tebex, couleurs et modules.",
-    homeWhyCta: "Découvrir le projet →",
+      "Tuiles, textes et modules d’exemple : en production, tu remplaces le tout par ton lore, tes liens Discord / Cfx.re, Tebex, couleurs et navigation depuis l’admin.",
+    homeWhyCta: "Voir la page « Hub open source » →",
     homeNewsTitle: "Dernières actualités",
     homeNewsCta: "Voir tout →",
     homeStatsTitle: "Statistiques (aperçu)",
     homeStatsDesc:
       "Chiffres d’exemple — remplacez-les par vos données (API, base) depuis la configuration du site.",
     homeStatsCta: "Voir les graphiques →",
-    homeForumTitle: "Forum communautaire",
+    homeForumTitle: "Forum (exemple)",
     homeForumDesc:
-      "Échangez avec les joueurs : présentations, lore, idées de scènes et entraide. Ouvrez un sujet ou répondez — tout est enregistré avec la configuration du site (navigateur / export JSON).",
+      "Sujets et catégories fictifs pour illustrer le forum intégré. Les données suivent la configuration du site (navigateur / export JSON).",
     homeForumCta: "Ouvrir le forum →",
     homeForumHeroLabel: "Forum",
-    serverPanelTitle: "Serveur",
-    serverPanelSubtitle: "Indicateurs éditables (admin)",
+    serverPanelTitle: "Bloc serveur",
+    serverPanelSubtitle: "Exemple — branchez votre API Cfx.re ou players.json",
     serverLiveBadge: "Live",
     serverColPlayers: "Joueurs en ligne",
     serverColStatus: "Statut",
@@ -101,6 +103,12 @@ export const defaultSiteConfig: SiteConfig = {
       label: "Présentation",
       enabled: true,
     },
+    {
+      id: "hubOpenSource",
+      href: "/hub-open-source",
+      label: "Hub open source",
+      enabled: true,
+    },
     { id: "reglement", href: "/reglement", label: "Règlement", enabled: true },
     {
       id: "candidatures",
@@ -140,189 +148,186 @@ export const defaultSiteConfig: SiteConfig = {
     staffAutoFromAccounts: true,
   },
   social: {
-    discord: "",
+    discord: "https://discord.gg/7XVtaRnpQe",
     cfx: "",
     tebex: "",
     youtube: "",
   },
   server: {
-    ip: `connect ${FIVEM_SERVER_ENDPOINT}`,
-    displayName: "Harrata Community — Principal",
+    ip: DEMO_CONNECT_PLACEHOLDER,
+    displayName: "Exemple — jauges serveur (données statiques)",
     cfxJoinUrl: "",
     status: "online",
-    playersOnline: 0,
-    maxPlayers: 64,
+    playersOnline: 42,
+    maxPlayers: 128,
     metricsApiUrl: "",
-    /* Synchro live : on a l'endpoint public du /players.json natif FiveM. */
-    playersJsonUrl: `http://${FIVEM_SERVER_ENDPOINT}/players.json`,
-    autoLive: true,
+    playersJsonUrl: "",
+    autoLive: false,
     liveRefreshSeconds: 30,
   },
   announcements: [
     {
       id: "a1",
-      text: "Patch 2.4 : refonte police & économie locale — lisez les notes sur Actualités.",
+      text: "Démo : ce site illustre le template open source — clonez le dépôt GitHub pour votre communauté.",
       active: true,
     },
     {
       id: "a2",
-      text: "Événement spécial ce week-end : course illégale à Sandy Shores, inscriptions sur Discord.",
+      text: "Astuce : ouvrez l’admin (première visite) pour voir comment le contenu est éditable sans toucher au code.",
       active: true,
     },
     {
       id: "a3",
-      text: "Recrutement EMS / LSPD ouvert — postulez via le forum dans la section candidatures.",
+      text: "Les actualités, règles et forum ci-dessous sont des exemples — remplacez-les par vos vrais contenus.",
       active: true,
     },
   ],
   features: [
     {
       id: "f1",
-      title: "Qualité RP",
+      title: "Admin sans redeploy",
       description:
-        "Scènes cohérentes, fair-play et staff réactif pour une immersion durable.",
+        "Textes, navigation, couleurs, annonces et bien plus : une grande partie se configure depuis le panneau.",
       icon: "shield",
     },
     {
       id: "f2",
-      title: "Économie vivante",
+      title: "FR / EN",
       description:
-        "Métiers légaux & illégaux, flux d argent maîtrisés, anti-grind pensé RP.",
+        "Internationalisation avec préfixe d’URL explicite pour éviter les mélanges de langue.",
       icon: "economy",
     },
     {
       id: "f3",
-      title: "Factions & entreprises",
+      title: "Forum & comptes",
       description:
-        "Structures jouables, documents, territoires et événements narratifs.",
+        "Forum intégré, notifications, authentification Discord et Steam — prêt à brancher sur votre infra.",
       icon: "users",
     },
     {
       id: "f4",
-      title: "Carte optimisée",
+      title: "Thème sombre soigné",
       description:
-        "Performance, props propres, zones RP claires et MLO soignés.",
+        "UI moderne (Tailwind) : couleurs, polices et image de hero modifiables depuis la config.",
       icon: "map",
     },
   ],
   lore: [
     {
-      title: "Los Santos, autrement",
-      body: "Ici, chaque rue raconte une dette, une alliance ou une trahison. Vous n êtes pas un scoreboard : vous êtes un habitant.",
+      title: "Texte d’exemple (config)",
+      body: "Ces paragraphes viennent du fichier de configuration par défaut. Après fork, remplacez-les par le lore de votre serveur ou chargez vos textes via l’admin.",
     },
     {
-      title: "Philosophie",
-      body: "Nous privilégions la narration, le respect du cadre et la progression lente mais signifiante. Le grind n est pas le protagoniste.",
+      title: "Objectif de la démo",
+      body: "Montrer la mise en page, les cartes et la hiérarchie visuelle — pas une histoire canonique.",
     },
   ],
   strengths: [
-    "Staff expérimenté & transparent",
-    "Outils internes (dispatch, dossiers, entreprises)",
-    "Saisonnalité : arcs narratifs & événements",
-    "Anti-cheat & logs structurés",
+    "Code TypeScript structuré (App Router Next.js 15)",
+    "Déployable sur Vercel ou tout hébergeur Node",
+    "Licence MIT — voir le README du dépôt",
+    "Extensible : API routes, formulaires, uploads",
   ],
   economyBlurb:
-    "Une économie circulaire : salaires, stocks, impôts fictifs, marché gris et risques réels. L argent a du poids.",
+    "Paragraphe d’exemple : ici vous décririez l’économie de votre serveur. Les chiffres des statistiques sont également factices et servent d’aperçu graphique.",
   staff: [],
   rules: [
     {
       id: "general",
-      title: "Règlement général",
+      title: "Exemple — règles générales",
       items: [
-        "Respect des joueurs et du staff (0 tolérance harcèlement / discrimination).",
-        "Interdiction de cheat, exploit, meta-gaming et power-gaming.",
-        "Utilisez les canaux appropriés (Discord / tickets) pour les litiges.",
+        "Texte fictif : ici vous listeriez le respect entre joueurs et les interdictions de base.",
+        "Remplacez ces lignes par votre vrai règlement depuis l’admin.",
+        "Les ancres d’URL (#general, #rp…) restent valables pour partager une section.",
       ],
     },
     {
       id: "rp",
-      title: "Règlement RP",
+      title: "Exemple — cadre RP",
       items: [
-        "Value your life : votre personnage valorise sa survie.",
-        "Le RP prime sur les règles techniques lorsque la scène l exige (fair-play).",
-        "Les scènes sensibles nécessitent consentement des parties impliquées.",
+        "Illustration d’une section « roleplay » (value your life, fair-play, etc.).",
+        "Le rendu Markdown / listes est celui que verront vos joueurs.",
+        "Modifiez le contenu sans redéployer le site.",
       ],
     },
     {
       id: "staff",
-      title: "Règlement staff",
+      title: "Exemple — staff",
       items: [
-        "Le staff reste neutre et documente les décisions importantes.",
-        "Aucun favoritisme lié aux donations ou relations personnelles.",
-        "Les sanctions sont proportionnées et expliquées lorsque possible.",
+        "Paragraphes type pour la transparence staff.",
+        "À adapter à votre structure (hiérarchie, tickets, sanctions).",
       ],
     },
     {
       id: "wl",
-      title: "Règlement whitelist",
+      title: "Exemple — whitelist",
       items: [
-        "La candidature doit refléter votre personnage, pas un CV technique.",
-        "Les réponses copiées-collées depuis d autres serveurs sont refusées.",
-        "La whitelist peut être retirée en cas de manquements graves répétés.",
+        "Conditions d’accès fictives pour la maquette.",
+        "Liez ce texte à votre vrai processus de candidature.",
       ],
     },
   ],
   articles: [
     {
-      slug: "patch-2-4-economie",
-      title: "Patch 2.4 — Économie locale & police",
+      slug: "template-notes-1",
+      title: "Notes de version — template hub",
       excerpt:
-        "Stabilité des prix, saisies RP et nouveaux outils dispatch pour les forces de l ordre.",
+        "Article d’exemple : ainsi s’affichent les patch notes sur l’accueil et la page Actualités.",
       date: "2026-04-12",
       category: "patch",
       featured: true,
       bodyMarkdown:
-        "## Changements majeurs\n\n- Révision des prix de gros.\n- Nouveau module de saisie RP.\n- Correctifs de synchronisation.\n\n> Compatible Tebex & exports Discord à venir.",
+        "## Contenu fictif\n\n- Liste à puces pour montrer le rendu Markdown.\n- Liens et emphases **possibles**.\n\n> Remplacez cet article par vos vraies notes de patch.",
     },
     {
-      slug: "event-urban-nights",
-      title: "Événement : Urban Nights",
+      slug: "template-event-demo",
+      title: "Événement (exemple)",
       excerpt:
-        "Une soirée narrée par la ville : concerts, tensions et opportunités.",
+        "Démonstration d’un encart « événement » — dates, extrait et page détail.",
       date: "2026-03-28",
       category: "event",
       featured: false,
       bodyMarkdown:
-        "Préparez vos tenues et vos alliances. Line-up & horaires sur Discord.",
+        "Texte d’exemple pour un événement communautaire. Ajoutez vos dates et votre lien Discord dans l’admin.",
     },
     {
-      slug: "communaute-spotlight",
-      title: "Spotlight : entreprises locales",
+      slug: "template-community-demo",
+      title: "Communauté — article d’aperçu",
       excerpt:
-        "Mise en avant des PME qui structurent le quotidien du serveur.",
+        "Troisième article pour remplir la grille et tester les catégories.",
       date: "2026-03-02",
       category: "community",
       featured: false,
       bodyMarkdown:
-        "Envoyez votre histoire d entreprise via le formulaire **Entreprise / Faction**.",
+        "Utilisez cette section pour des interviews, spotlights ou annonces staff.",
     },
   ],
   boutiqueProducts: [
     {
       id: "vip-30",
-      title: "VIP 30 jours",
+      title: "Produit exemple A",
       description:
-        "Cosmétiques légers, file prioritaire support & rôle Discord dédié.",
+        "Carte boutique fictive — branchez votre boutique Tebex dans la config.",
       priceLabel: "9,99 €",
-      perks: ["Tag Discord", "Kit cosmétique RP-safe", "Support prioritaire"],
+      perks: ["Ligne 1", "Ligne 2", "Ligne 3"],
       badge: "vip",
-      promoLabel: "-15% ce week-end",
+      promoLabel: "Label promo (démo)",
     },
     {
       id: "pack-starter",
-      title: "Pack Starter Véhicule",
+      title: "Produit exemple B",
       description:
-        "Un véhicule civil équilibré + place garage entreprise (non pay-to-win).",
+        "Deuxième fiche pour montrer la grille et les badges.",
       priceLabel: "14,99 €",
-      perks: ["Véhicule whitelisté", "1 slot garage", "Skin plaque RP"],
+      perks: ["Aperçu", "Mise en page", "Prix factice"],
       badge: "new",
     },
     {
       id: "cosmetic-bundle",
-      title: "Bundle accessoires",
-      description: "Tenues & props validés par le staff lore.",
+      title: "Produit exemple C",
+      description: "Troisième produit — tout est modifiable dans l’admin.",
       priceLabel: "4,99 €",
-      perks: ["5 accessoires", "Validation rapide"],
+      perks: ["Démo", "Cosmétique", "Sans valeur réelle"],
       badge: "limited",
     },
   ],
@@ -352,22 +357,22 @@ export const defaultSiteConfig: SiteConfig = {
       id: "pm1",
       type: "image",
       src: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1600&q=80",
-      title: "Skyline urbaine",
-      caption: "Le cœur de la ville où tout commence.",
+      title: "Image d’illustration",
+      caption: "Photo Unsplash — remplacez par vos captures in-game.",
     },
     {
       id: "pm2",
       type: "image",
       src: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=1600&q=80",
-      title: "Vie nocturne",
-      caption: "Les rues s’animent à la tombée de la nuit.",
+      title: "Deuxième visuel",
+      caption: "La grille Présentation montre comment aligner médias et textes.",
     },
     {
       id: "pm3",
       type: "youtube",
       src: "dQw4w9WgXcQ",
-      title: "Trailer officiel",
-      caption: "Plongez dans l’univers en 90 secondes.",
+      title: "Vidéo YouTube (exemple)",
+      caption: "Remplacez l’ID par votre trailer ou supprimez ce bloc.",
     },
   ],
   statCards: [
@@ -406,19 +411,19 @@ export const defaultSiteConfig: SiteConfig = {
   ],
   faq: [
     {
-      question: "Comment rejoindre le serveur ?",
+      question: "Ce site est-il un vrai serveur RP ?",
       answer:
-        "Lisez le règlement, passez la whitelist si requise, puis utilisez le bouton Cfx.re ou la commande affichée sur l accueil.",
+        "Non : c’est une démo du template. Les textes et chiffres servent à montrer le rendu. Clonez le dépôt et remplacez le contenu par le vôtre.",
     },
     {
-      question: "Le serveur est-il pay-to-win ?",
+      question: "Comment obtenir le code source ?",
       answer:
-        "Non. La boutique propose cosmétiques & confort sans avantage compétitif direct.",
+        "Voir la page « Hub open source » ou le dépôt GitHub indiqué dans le README (licence MIT).",
     },
     {
-      question: "Où signaler un problème ?",
+      question: "Puis-je retirer des pages (forum, boutique…) ?",
       answer:
-        "Via le formulaire Contact ou un ticket Discord selon les canaux affichés.",
+        "Oui : désactivez les modules dans le panneau admin ou adaptez la navigation.",
     },
   ],
   roles: BUILTIN_ROLE_DEFINITIONS,
@@ -426,19 +431,19 @@ export const defaultSiteConfig: SiteConfig = {
     {
       id: "general",
       title: "Général",
-      description: "Présentations, discussions libres et ambiance serveur.",
+      description: "Catégorie d’exemple — présentations, discussions.",
       accent: "var(--rp-primary)",
     },
     {
       id: "rp",
       title: "Roleplay & lore",
-      description: "Histoires, questions de cohérence et idées de scènes.",
+      description: "Exemple de fils pour le lore et les idées de scènes.",
       accent: "var(--rp-secondary)",
     },
     {
       id: "support",
       title: "Aide & suggestions",
-      description: "Remontées constructives et demandes d’orientation.",
+      description: "Exemple pour l’entraide et les retours.",
       accent: "var(--rp-accent)",
     },
   ],
@@ -446,9 +451,9 @@ export const defaultSiteConfig: SiteConfig = {
     {
       id: "topic-welcome",
       categoryId: "general",
-      title: "Bienvenue sur le forum",
-      author: "Équipe",
-      body: "Utilisez ce fil pour vous présenter brièvement (pseudo IG, style de RP). Restez respectueux : le staff peut modérer ou retirer des messages via la configuration exportée.",
+      title: "Sujet d’exemple — bienvenue",
+      author: "Démo",
+      body: "Ce message illustre un fil de forum. Les réponses et vues sont stockées avec la configuration du site (navigateur / export). Remplacez ce contenu après installation.",
       createdAt: "2026-04-01T10:00:00.000Z",
       updatedAt: "2026-04-01T11:30:00.000Z",
       pinned: true,
@@ -456,8 +461,8 @@ export const defaultSiteConfig: SiteConfig = {
       replies: [
         {
           id: "r1",
-          author: "Modo",
-          body: "Pensez à lire le règlement avant de poster. Bon jeu à tous.",
+          author: "Démo",
+          body: "Réponse d’exemple pour montrer l’enfilade des messages.",
           createdAt: "2026-04-01T11:30:00.000Z",
         },
       ],
@@ -465,9 +470,9 @@ export const defaultSiteConfig: SiteConfig = {
     {
       id: "topic-lore",
       categoryId: "rp",
-      title: "Fil conducteur de la saison",
-      author: "Lore",
-      body: "Quels arcs narratifs vous intéressent le plus pour les semaines à venir ?",
+      title: "Deuxième sujet (exemple)",
+      author: "Démo",
+      body: "Texte factice pour tester la liste des sujets et la page catégorie.",
       createdAt: "2026-04-05T14:00:00.000Z",
       updatedAt: "2026-04-05T14:00:00.000Z",
       views: 12,

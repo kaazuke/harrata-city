@@ -1,8 +1,9 @@
 <div align="center">
 
-# Harrata City
+# Harrata City (repo) — hub communautaire FiveM
 
-**Hub communautaire FiveM Roleplay — Next.js 15 · React 19 · TypeScript · Tailwind CSS 4**
+**Template open source — Next.js 15 · React 19 · TypeScript · Tailwind CSS 4**  
+Le site public sur Vercel est une **démo** (contenus fictifs) pour que les contributeurs voient le rendu avant de forker.
 
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen?style=flat-square)](https://fivem-rp-community.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=flat-square&logo=next.js)](https://nextjs.org)
@@ -17,12 +18,13 @@
 
 ## Présentation
 
-**Harrata City** est un hub communautaire pour serveur **FiveM Roleplay**. La plateforme offre une expérience complète aux joueurs — présentation du serveur, règlement, candidatures, boutique, forum, galerie, actualités, statistiques — entièrement **pilotable depuis un panneau d'administration** sans toucher au code.
+Ce dépôt est un **hub communautaire** pour serveur **FiveM Roleplay** : présentation, règlement, candidatures, boutique, forum, galerie, actualités, statistiques — **pilotable depuis un panneau d'administration** sans toucher au code.
 
-Le site affiche en temps réel l'état du serveur FiveM (joueurs connectés, slots disponibles, description, icône) et propose une authentification via **Discord** et **Steam**.
+La démo en ligne utilise des **données d’exemple** pour le bloc serveur ; après fork vous pouvez brancher l’**API Cfx.re** ou un endpoint **`/players.json`**. Authentification **Discord** et **Steam** disponibles selon vos variables d’environnement.
 
-- 🌐 **Site en production** : [fivem-rp-community.vercel.app](https://fivem-rp-community.vercel.app)
-- 🎮 **Serveur FiveM** : `connect 51.68.125.155:30120`
+- 🌐 **Démo en ligne** : [fivem-rp-community.vercel.app](https://fivem-rp-community.vercel.app) — parcourir les pages ; voir aussi [/fr/hub-open-source](https://fivem-rp-community.vercel.app/fr/hub-open-source) pour le contexte projet.
+- 🎮 **Serveur FiveM** : non inclus dans la démo par défaut — configurez votre `players.json` ou code Cfx.re dans l’admin après fork.
+- 💬 **Bêta — contact & infos** : [Discord](https://discord.gg/7XVtaRnpQe) — questions installation, outils, retours. Texte prêt à partager : [docs/infos-beta-contact-discord.md](docs/infos-beta-contact-discord.md).
 
 ---
 
@@ -30,7 +32,7 @@ Le site affiche en temps réel l'état du serveur FiveM (joueurs connectés, slo
 
 ### Interface publique
 
-- 🏠 **Accueil** dynamique avec statut live du serveur FiveM
+- 🏠 **Accueil** avec bloc serveur (démo statique ou live si configuré)
 - 📖 **Présentation** du projet et du lore
 - 📜 **Règlement** éditable depuis l'admin
 - 📝 **Candidatures** (whitelist / staff) avec formulaires configurables
@@ -251,6 +253,6 @@ Ce hub communautaire est un projet indépendant non affilié à Rockstar Games n
 
 <div align="center">
 
-**Créé pour la communauté Harrata City · [fivem-rp-community.vercel.app](https://fivem-rp-community.vercel.app)**
+**Démo publique · [fivem-rp-community.vercel.app](https://fivem-rp-community.vercel.app) · [GitHub](https://github.com/kaazuke/harrata-city)**
 
 </div>
